@@ -1,0 +1,178 @@
+// Centralized translation dictionary for English and Hebrew.
+
+import type { Language } from "../types";
+
+export type TranslationKey = keyof typeof en;
+
+const en = {
+  app_name: "Add Your Line",
+  tagline: "Write a short story together, two sentences at a time.",
+
+  // Home
+  your_name: "Your name",
+  name_placeholder: "Enter your name",
+  language: "Language",
+  number_of_turns: "Story length",
+  turns_suffix: "turns",
+  play_with_random: "Write with a random person",
+  play_with_random_sub: "We'll match you with another writer",
+  play_with_friend: "Write with a friend",
+  play_with_friend_sub: "Get a link to share",
+  start: "Start",
+  enter_name_first: "Please enter your name first",
+
+  // Waiting
+  waiting_for_writer: "Waiting for another writer…",
+  waiting_for_friend: "Waiting for your friend…",
+  waiting_hint: "Keep this page open. The story starts the moment they join.",
+  invite_a_friend: "Invite a friend",
+  invite_hint: "Share this link. Whoever opens it first becomes your co-writer.",
+  copy_link: "Copy link",
+  copied: "Copied!",
+  share_whatsapp: "WhatsApp",
+  share_facebook: "Facebook",
+  share_native: "Share…",
+  cancel: "Cancel",
+  invite_message: "Let's write a story together on Add Your Line! Join me here: ",
+
+  // Game
+  turn_indicator: "Turn {current} / {total}",
+  write_to_start: "Write 2 sentences to start the story",
+  continue_story: "Continue the story with 2 sentences",
+  your_turn: "Your turn",
+  waiting_for: "Waiting for {name}…",
+  send_to: "Send to {name}",
+  sending: "Sending…",
+  two_sentences_rule: "Exactly two sentences, please.",
+  the_story_so_far: "The story so far",
+  no_text_yet: "The page is blank… for now.",
+  you_label: "You",
+  disconnected_banner: "{name} seems to have lost connection. We'll keep waiting.",
+  reconnected_banner: "{name} is back!",
+  connection_lost: "Reconnecting…",
+
+  // Completed
+  story_ready: "Your Story Is Ready!",
+  written_by: "Written by {a} & {b}",
+  share_story: "Share story",
+  share_x: "X / Twitter",
+  copy_story_link: "Copy story link",
+  write_another: "Write another story",
+  completed_share_message: "We wrote a story together on Add Your Line — read it here: ",
+  loading: "Loading…",
+
+  // Join landing
+  join_title: "Join the story",
+  join_sub: "{name} invited you to write a story together.",
+  join_button: "Join and start writing",
+  game_full: "This story already has two writers.",
+  story_not_found: "We couldn't find that story.",
+  back_home: "Back to home",
+  go_to_story: "Go to the story",
+
+  // Errors (by backend code)
+  err_needs_two_sentences: "Please write exactly two sentences.",
+  err_too_long: "That's a bit too long — please shorten it.",
+  err_empty: "Please write something first.",
+  err_not_your_turn: "It's not your turn yet.",
+  err_invalid_token: "We couldn't verify your session.",
+  err_story_full: "This story already has two writers.",
+  err_story_not_joinable: "This story can no longer be joined.",
+  err_story_completed: "This story is already finished.",
+  err_story_not_found: "We couldn't find that story.",
+  err_turn_already_submitted: "That turn was already submitted.",
+  err_invalid_turn_count: "Please choose a valid story length.",
+  err_name_required: "Please enter your name.",
+  err_name_too_long: "That name is too long.",
+  err_rate_limited: "Too many requests — please slow down a moment.",
+  err_request_failed: "Something went wrong. Please try again.",
+  err_story_not_active: "This story isn't active yet.",
+  err_story_not_cancelable: "This story can no longer be cancelled.",
+};
+
+const he: Record<TranslationKey, string> = {
+  app_name: "הוסיפו שורה",
+  tagline: "כותבים סיפור קצר ביחד, שני משפטים בכל תור.",
+
+  your_name: "השם שלך",
+  name_placeholder: "הכניסו את שמכם",
+  language: "שפה",
+  number_of_turns: "אורך הסיפור",
+  turns_suffix: "תורות",
+  play_with_random: "כתבו עם אדם אקראי",
+  play_with_random_sub: "נמצא עבורכם כותב נוסף",
+  play_with_friend: "כתבו עם חבר",
+  play_with_friend_sub: "קבלו קישור לשיתוף",
+  start: "התחילו",
+  enter_name_first: "אנא הכניסו את שמכם תחילה",
+
+  waiting_for_writer: "ממתינים לכותב נוסף…",
+  waiting_for_friend: "ממתינים לחבר שלכם…",
+  waiting_hint: "השאירו את הדף פתוח. הסיפור יתחיל ברגע שיצטרפו.",
+  invite_a_friend: "הזמינו חבר",
+  invite_hint: "שתפו את הקישור. מי שיפתח אותו ראשון יהפוך לשותף לכתיבה.",
+  copy_link: "העתיקו קישור",
+  copied: "הועתק!",
+  share_whatsapp: "וואטסאפ",
+  share_facebook: "פייסבוק",
+  share_native: "שיתוף…",
+  cancel: "ביטול",
+  invite_message: "בואו נכתוב סיפור ביחד ב״הוסיפו שורה״! הצטרפו כאן: ",
+
+  turn_indicator: "תור {current} / {total}",
+  write_to_start: "כתבו 2 משפטים כדי להתחיל את הסיפור",
+  continue_story: "המשיכו את הסיפור בשני משפטים",
+  your_turn: "תורכם",
+  waiting_for: "ממתינים ל{name}…",
+  send_to: "שלחו ל{name}",
+  sending: "שולח…",
+  two_sentences_rule: "בדיוק שני משפטים, בבקשה.",
+  the_story_so_far: "הסיפור עד כה",
+  no_text_yet: "הדף עדיין ריק…",
+  you_label: "את/ה",
+  disconnected_banner: "נראה ש{name} התנתק/ה. אנחנו ממשיכים לחכות.",
+  reconnected_banner: "{name} חזר/ה!",
+  connection_lost: "מתחבר מחדש…",
+
+  story_ready: "הסיפור שלכם מוכן!",
+  written_by: "נכתב על ידי {a} ו{b}",
+  share_story: "שתפו את הסיפור",
+  share_x: "X / טוויטר",
+  copy_story_link: "העתיקו קישור לסיפור",
+  write_another: "כתבו סיפור נוסף",
+  completed_share_message: "כתבנו סיפור ביחד ב״הוסיפו שורה״ — קראו אותו כאן: ",
+  loading: "טוען…",
+
+  join_title: "הצטרפו לסיפור",
+  join_sub: "{name} הזמין/ה אתכם לכתוב סיפור ביחד.",
+  join_button: "הצטרפו והתחילו לכתוב",
+  game_full: "לסיפור הזה כבר יש שני כותבים.",
+  story_not_found: "לא מצאנו את הסיפור הזה.",
+  back_home: "חזרה לדף הבית",
+  go_to_story: "עברו לסיפור",
+
+  err_needs_two_sentences: "אנא כתבו בדיוק שני משפטים.",
+  err_too_long: "זה קצת ארוך מדי — אנא קצרו.",
+  err_empty: "אנא כתבו משהו תחילה.",
+  err_not_your_turn: "זה עדיין לא תורכם.",
+  err_invalid_token: "לא הצלחנו לאמת את החיבור שלכם.",
+  err_story_full: "לסיפור הזה כבר יש שני כותבים.",
+  err_story_not_joinable: "לא ניתן עוד להצטרף לסיפור הזה.",
+  err_story_completed: "הסיפור הזה כבר הסתיים.",
+  err_story_not_found: "לא מצאנו את הסיפור הזה.",
+  err_turn_already_submitted: "התור הזה כבר נשלח.",
+  err_invalid_turn_count: "אנא בחרו אורך סיפור תקין.",
+  err_name_required: "אנא הכניסו את שמכם.",
+  err_name_too_long: "השם ארוך מדי.",
+  err_rate_limited: "יותר מדי בקשות — אנא האטו לרגע.",
+  err_request_failed: "משהו השתבש. אנא נסו שוב.",
+  err_story_not_active: "הסיפור הזה עדיין לא פעיל.",
+  err_story_not_cancelable: "לא ניתן עוד לבטל את הסיפור הזה.",
+};
+
+export const translations: Record<Language, Record<TranslationKey, string>> = { en, he };
+
+export function errorKey(code: string): TranslationKey {
+  const key = `err_${code}` as TranslationKey;
+  return key in en ? key : "err_request_failed";
+}

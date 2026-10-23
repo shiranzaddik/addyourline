@@ -1,0 +1,41 @@
+# Local development with Docker Compose.
+#
+# Brings up:
+#   - backend:  FastAPI on http://localhost:8000 (SQLite volume)
+#   - frontend: Vite dev server on http://localhost:5173 (proxies to backend)
+#
+# For a single-container production image that serves the built frontend from
+# FastAPI, see README.md (Deployment).
+
+services:
+  backend:
+    build: ./backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      DATABASE_URL: sqlite+aiosqlite:///./data/addyourline.db
+      PUBLIC_BASE_URL: http://localhost:5173
+      CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+      ALLOWED_TURN_COUNTS: "10,20,30"
+    volumes:
+      - ./backend:/app
+      - backend_data:/app/data
+    ports:
+      - "8000:8000"
+
+  frontend:
+    image: node:24-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      # Vite proxies /api and /ws to the backend service.
+      VITE_BACKEND_URL: http://backend:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  backend_data:
