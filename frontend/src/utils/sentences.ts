@@ -4,7 +4,9 @@
 const TERMINALS = ".!?…！？。";
 const escaped = TERMINALS.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const SENTENCE_RE = new RegExp(`[^${escaped}]*[${escaped}]+`, "g");
-const HAS_WORD_RE = /[^\W\d_]|\d/u;
+// A sentence body must contain a letter or digit of ANY script. Note: \w/\W in
+// JS are ASCII-only even with /u, which wrongly excluded Hebrew — use \p{L}/\p{N}.
+const HAS_WORD_RE = /[\p{L}\p{N}]/u;
 
 // Returns the number of terminated sentences, or -1 if there is trailing
 // unterminated text (i.e. a sentence missing its final punctuation).
