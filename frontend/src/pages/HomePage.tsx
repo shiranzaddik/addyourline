@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Shell } from "../components/Shell";
 import { useI18n } from "../i18n/I18nContext";
 import { api, ApiError } from "../services/api";
-import { getSavedName, saveName, saveSession } from "../services/storage";
+import { saveSession } from "../services/storage";
 import type { JoinResponse } from "../types";
 
 // Default length for a new friend story; the creator can change it on the next
@@ -15,12 +15,11 @@ export function HomePage() {
   const { t, tError, lang } = useI18n();
   const navigate = useNavigate();
 
-  const [name, setName] = useState(getSavedName());
+  const [name, setName] = useState("");
   const [busy, setBusy] = useState<"friend" | "random" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const afterJoin = (res: JoinResponse) => {
-    saveName(name.trim());
     saveSession({
       storyId: res.story.id,
       token: res.token,

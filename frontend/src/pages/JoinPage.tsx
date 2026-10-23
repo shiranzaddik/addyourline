@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Shell } from "../components/Shell";
 import { useI18n } from "../i18n/I18nContext";
 import { api, ApiError } from "../services/api";
-import { getSavedName, getSession, saveName, saveSession } from "../services/storage";
+import { getSession, saveSession } from "../services/storage";
 import type { StoryState } from "../types";
 
 type View = "loading" | "join" | "full" | "notfound";
@@ -16,7 +16,7 @@ export function JoinPage() {
 
   const [view, setView] = useState<View>("loading");
   const [story, setStory] = useState<StoryState | null>(null);
-  const [name, setName] = useState(getSavedName());
+  const [name, setName] = useState("");
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,7 +50,6 @@ export function JoinPage() {
     setJoining(true);
     try {
       const res = await api.joinStory(storyId, name.trim());
-      saveName(name.trim());
       saveSession({
         storyId: res.story.id,
         token: res.token,
