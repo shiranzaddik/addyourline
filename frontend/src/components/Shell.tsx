@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
 
 import { useI18n } from "../i18n/I18nContext";
 import { LanguageSelector } from "./LanguageSelector";
@@ -8,10 +7,7 @@ export function Shell({ children, showLang = true }: { children: ReactNode; show
   const { t } = useI18n();
   return (
     <div className="app-shell">
-      <header className="brand">
-        <Link to="/" className="brand-logo" aria-label={t("app_name")}>
-          <img src="/icon.png" alt={t("app_name")} className="brand-img" />
-        </Link>
+      <header className="brand" style={{ justifyContent: "flex-end" }}>
         {showLang && <LanguageSelector />}
       </header>
       {children}
