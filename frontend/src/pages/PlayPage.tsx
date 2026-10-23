@@ -15,7 +15,7 @@ import { countSentences, handoffHint } from "../utils/sentences";
 export function PlayPage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
-  const { t, tError } = useI18n();
+  const { t, tError, dir: uiDir } = useI18n();
 
   const session = useMemo(() => (storyId ? getSession(storyId) : null), [storyId]);
 
@@ -378,8 +378,8 @@ export function PlayPage() {
               className="text-input"
               value={text}
               maxLength={maxLen}
-              placeholder={story.language === "he" ? "…כתבו כאן" : "Write here…"}
-              dir={story.language === "he" ? "rtl" : "ltr"}
+              placeholder={t("write_here")}
+              dir={uiDir}
               onChange={(e) => setText(e.target.value)}
               autoFocus
             />
