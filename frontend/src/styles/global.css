@@ -46,7 +46,8 @@ body,
 body {
   font-family: var(--sans);
   color: var(--ink);
-  background: linear-gradient(160deg, var(--bg-a), var(--bg-b) 55%, var(--bg-c));
+  /* Light around the header/logo at the top, deepening toward the empty areas. */
+  background: linear-gradient(180deg, #f7f9ff 0%, #e9edfb 36%, #cdd5ef 74%, #b4bee2 100%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
