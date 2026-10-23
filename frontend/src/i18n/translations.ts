@@ -6,6 +6,7 @@ export type TranslationKey = keyof typeof en;
 
 const en = {
   app_name: "Add Your Line",
+  home_headline: "Two writers, one story.",
   tagline: "Write a short story together, two sentences at a time.",
 
   // Home
@@ -107,6 +108,7 @@ const en = {
 
 const he: Record<TranslationKey, string> = {
   app_name: "הוסיפו שורה",
+  home_headline: "שני כותבים, סיפור אחד.",
   tagline: "כותבים סיפור קצר ביחד, שני משפטים בכל תור.",
 
   your_name: "השם שלך",

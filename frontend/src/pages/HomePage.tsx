@@ -87,7 +87,8 @@ export function HomePage() {
   return (
     <Shell>
       <div className="centered">
-        <div className="text-center stack" style={{ gap: 6 }}>
+        <div className="text-center stack" style={{ gap: 8 }}>
+          <h1 className="hero-title">{t("home_headline")}</h1>
           <p className="hero-sub">{t("tagline")}</p>
         </div>
 
