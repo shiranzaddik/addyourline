@@ -44,10 +44,11 @@ export const api = {
     });
   },
 
-  matchRandom(displayName: string, language: Language, totalTurns: number) {
+  matchRandom(displayName: string, language: Language) {
+    // Random mode: the server picks the length, so none is sent.
     return request<JoinResponse>("/matchmaking", {
       method: "POST",
-      body: JSON.stringify({ display_name: displayName, language, total_turns: totalTurns }),
+      body: JSON.stringify({ display_name: displayName, language }),
     });
   },
 

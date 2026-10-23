@@ -129,16 +129,16 @@ async def test_invalid_token_rejected(client):
 @pytest.mark.asyncio
 async def test_matchmaking_pairs_two_players(client):
     r1 = await client.post(
-        "/api/matchmaking",
-        json={"display_name": "P1", "language": "en", "total_turns": 10},
+        "/api/matchmaking", json={"display_name": "P1", "language": "en"}
     )
     assert r1.status_code == 200
     assert r1.json()["story"]["status"] == "waiting"
     story_id = r1.json()["story"]["id"]
+    # Length is chosen randomly by the server from the configured pool.
+    assert r1.json()["story"]["total_turns"] in (10, 20, 30)
 
     r2 = await client.post(
-        "/api/matchmaking",
-        json={"display_name": "P2", "language": "en", "total_turns": 10},
+        "/api/matchmaking", json={"display_name": "P2", "language": "en"}
     )
     assert r2.status_code == 200
     body2 = r2.json()
@@ -148,31 +148,25 @@ async def test_matchmaking_pairs_two_players(client):
 
 
 @pytest.mark.asyncio
-async def test_matchmaking_pairs_regardless_of_length(client):
-    # Random mode pairs on language only; the joiner's length pick is ignored
-    # and the game keeps the waiting (first) player's length.
-    r1 = await client.post(
-        "/api/matchmaking", json={"display_name": "P1", "language": "en", "total_turns": 10}
-    )
+async def test_matchmaking_random_length_is_server_chosen(client):
+    # Players send no length; the server assigns one from its random pool and
+    # both players share it.
+    r1 = await client.post("/api/matchmaking", json={"display_name": "P1", "language": "en"})
     story_id = r1.json()["story"]["id"]
-    r2 = await client.post(
-        "/api/matchmaking", json={"display_name": "P2", "language": "en", "total_turns": 20}
-    )
+    assigned = r1.json()["story"]["total_turns"]
+    assert assigned in (10, 20, 30)
+    r2 = await client.post("/api/matchmaking", json={"display_name": "P2", "language": "en"})
     body2 = r2.json()
-    assert body2["story"]["id"] == story_id  # matched despite different length pick
+    assert body2["story"]["id"] == story_id
     assert body2["story"]["status"] == "active"
-    assert body2["story"]["total_turns"] == 10  # first player's length wins
+    assert body2["story"]["total_turns"] == assigned  # joiner inherits it
 
 
 @pytest.mark.asyncio
 async def test_matchmaking_requires_same_language(client):
-    r1 = await client.post(
-        "/api/matchmaking", json={"display_name": "P1", "language": "en", "total_turns": 10}
-    )
+    r1 = await client.post("/api/matchmaking", json={"display_name": "P1", "language": "en"})
     # Different language should NOT match the waiting player.
-    r2 = await client.post(
-        "/api/matchmaking", json={"display_name": "P2", "language": "he", "total_turns": 10}
-    )
+    r2 = await client.post("/api/matchmaking", json={"display_name": "P2", "language": "he"})
     assert r1.json()["story"]["id"] != r2.json()["story"]["id"]
     assert r2.json()["story"]["status"] == "waiting"
 

@@ -10,6 +10,7 @@ two players grabbing the same waiting story.
 from __future__ import annotations
 
 import asyncio
+import random
 from collections import defaultdict, deque
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +19,7 @@ from ..config import settings
 from ..models import MODE_RANDOM, STATUS_WAITING, Player, Story
 from ..utils.security import generate_token, hash_token
 from ..utils.validation import validate_name
-from .story_service import join_story, load_story, validate_turn_count
+from .story_service import join_story, load_story
 
 # language -> queue of waiting story ids
 _queue: dict[str, deque[str]] = defaultdict(deque)
@@ -26,8 +27,10 @@ _lock = asyncio.Lock()
 
 
 async def _create_random_story(
-    db: AsyncSession, display_name: str, language: str, total_turns: int
+    db: AsyncSession, display_name: str, language: str
 ) -> tuple[Story, Player, str]:
+    # The length of a random game is itself random — neither player chooses it.
+    total_turns = random.choice(settings.random_turn_count_list)
     token = generate_token()
     story = Story(
         language=language,
@@ -45,15 +48,16 @@ async def _create_random_story(
 
 
 async def request_match(
-    db: AsyncSession, display_name: str, language: str, total_turns: int
+    db: AsyncSession, display_name: str, language: str
 ) -> tuple[Story, Player, str, bool]:
     """Return (story, player, token, matched).
 
     matched=True means the player joined an existing waiting story and the game
     is now active; matched=False means they are waiting in a freshly created one.
+    Players are paired by language; the story length is chosen randomly by the
+    server (neither player selects it in random mode).
     """
     name = validate_name(display_name, settings.max_name_length)
-    validate_turn_count(total_turns)
 
     async with _lock:
         q = _queue[language]
@@ -63,13 +67,13 @@ async def request_match(
             # Skip stale entries (cancelled, already full, or no longer waiting).
             if waiting is None or waiting.status != STATUS_WAITING or len(waiting.players) != 1:
                 continue
-            # Found a valid partner of the same language — join as player 2.
-            # The game keeps the waiting player's length; this joiner's pick is ignored.
+            # Found a valid partner of the same language — join as player 2,
+            # inheriting the randomly-chosen length of the waiting story.
             story, player, token = await join_story(db, waiting_id, name)
             return story, player, token, True
 
-        # No partner available: create a new waiting story and enqueue it.
-        story, player, token = await _create_random_story(db, name, language, total_turns)
+        # No partner available: create a new waiting story (random length).
+        story, player, token = await _create_random_story(db, name, language)
         _queue[language].append(story.id)
         return story, player, token, False
 

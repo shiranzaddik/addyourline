@@ -43,9 +43,9 @@ async def create_story(req: CreateStoryRequest, db: AsyncSession = Depends(get_d
         story, player, token = await create_friend_story(
             db, req.display_name, req.language, req.total_turns
         )
-    else:  # random -> matchmaking
+    else:  # random -> matchmaking (length is chosen randomly by the server)
         story, player, token, matched = await matchmaking.request_match(
-            db, req.display_name, req.language, req.total_turns
+            db, req.display_name, req.language
         )
         if matched:
             # Notify the player who was already waiting that the game has started.

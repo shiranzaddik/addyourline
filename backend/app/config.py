@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     # Custom story lengths are allowed within this inclusive range.
     min_turns: int = 2
     max_turns: int = 50
+    # Random mode ignores the players' length choice and picks one of these.
+    random_turn_counts: str = "10,20,30"
 
     # Simple per-IP rate limiting (requests per window) for write endpoints.
     rate_limit_requests: int = 60
@@ -36,6 +38,11 @@ class Settings(BaseSettings):
     @property
     def allowed_turn_count_set(self) -> set[int]:
         return {int(t.strip()) for t in self.allowed_turn_counts.split(",") if t.strip()}
+
+    @property
+    def random_turn_count_list(self) -> list[int]:
+        values = [int(t.strip()) for t in self.random_turn_counts.split(",") if t.strip()]
+        return values or [10, 20, 30]
 
 
 @lru_cache

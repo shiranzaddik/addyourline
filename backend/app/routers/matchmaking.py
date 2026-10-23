@@ -17,7 +17,7 @@ router = APIRouter(prefix="/api/matchmaking", tags=["matchmaking"])
 @router.post("", response_model=JoinResponse, dependencies=[Depends(rate_limit)])
 async def join_random(req: MatchmakingRequest, db: AsyncSession = Depends(get_db)) -> JoinResponse:
     story, player, token, matched = await matchmaking.request_match(
-        db, req.display_name, req.language, req.total_turns
+        db, req.display_name, req.language
     )
     if matched:
         await events.broadcast_state(story, events.GAME_STARTED)

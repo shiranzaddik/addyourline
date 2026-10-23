@@ -47,17 +47,25 @@ export function HomePage() {
       setError(t("enter_name_first"));
       return;
     }
-    const effectiveTurns = customMode ? parseInt(customValue, 10) : turns;
-    if (!Number.isInteger(effectiveTurns) || effectiveTurns < range.min || effectiveTurns > range.max) {
-      setError(t("turns_range_hint", { min: range.min, max: range.max }));
-      return;
+    // Length only applies to friend mode; random length is chosen by the server.
+    let effectiveTurns = turns;
+    if (mode === "friend") {
+      effectiveTurns = customMode ? parseInt(customValue, 10) : turns;
+      if (
+        !Number.isInteger(effectiveTurns) ||
+        effectiveTurns < range.min ||
+        effectiveTurns > range.max
+      ) {
+        setError(t("turns_range_hint", { min: range.min, max: range.max }));
+        return;
+      }
     }
     setBusy(mode);
     try {
       const res =
         mode === "friend"
           ? await api.createFriendStory(name.trim(), lang, effectiveTurns)
-          : await api.matchRandom(name.trim(), lang, effectiveTurns);
+          : await api.matchRandom(name.trim(), lang);
       afterJoin(res);
     } catch (e) {
       setError(e instanceof ApiError ? tError(e.code) : t("err_request_failed"));
@@ -131,6 +139,9 @@ export function HomePage() {
                 />
               </div>
             )}
+            <p className="muted" style={{ fontSize: "0.82rem", margin: "8px 0 0" }}>
+              {t("length_applies_hint")}
+            </p>
           </div>
 
           {error && <div className="banner banner-error">{error}</div>}

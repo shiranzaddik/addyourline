@@ -30,9 +30,9 @@ class JoinStoryRequest(BaseModel):
 
 
 class MatchmakingRequest(BaseModel):
+    # Random mode: the server chooses the length, so no total_turns here.
     display_name: str = Field(..., min_length=1, max_length=80)
     language: str = Field(..., pattern="^(en|he)$")
-    total_turns: int
 
     @field_validator("display_name")
     @classmethod
