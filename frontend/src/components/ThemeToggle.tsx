@@ -1,19 +1,7 @@
-import { useEffect, useState } from "react";
-
-import { getSavedTheme, saveTheme } from "../services/storage";
-
-type Theme = "light" | "dark";
+import { useTheme } from "../theme/ThemeContext";
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(() => getSavedTheme() ?? "light");
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    saveTheme(theme);
-  }, [theme]);
-
-  const toggle = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
-
+  const { theme, toggle } = useTheme();
   return (
     <button
       className="theme-toggle"

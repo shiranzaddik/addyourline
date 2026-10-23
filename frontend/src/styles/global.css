@@ -117,13 +117,6 @@ body {
   text-decoration: none;
   line-height: 0;
 }
-/* The logo's navy wordmark needs a light badge to stay legible on dark. */
-:root[data-theme="dark"] .brand-lockup-link {
-  background: #fdfdff;
-  padding: 5px 12px;
-  border-radius: 13px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
-}
 .brand-img {
   height: clamp(32px, 8.5vw, 44px);
   width: auto;
