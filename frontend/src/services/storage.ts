@@ -73,6 +73,23 @@ export function saveName(name: string): void {
   }
 }
 
+export function getSavedTheme(): "light" | "dark" | null {
+  try {
+    const v = localStorage.getItem("ayl:theme");
+    return v === "light" || v === "dark" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveTheme(theme: "light" | "dark"): void {
+  try {
+    localStorage.setItem("ayl:theme", theme);
+  } catch {
+    /* ignore */
+  }
+}
+
 export function getSavedLang(): Language | null {
   try {
     const v = localStorage.getItem(LANG_KEY);

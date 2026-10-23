@@ -20,6 +20,8 @@
   --line: #ebe7f3;
   --danger: #e2495a;
   --gold: #f5a623;
+  --page-bg: #f3f5fc;
+  --dot: rgba(30, 41, 82, 0.07);
 
   --radius: 22px;
   --radius-sm: 13px;
@@ -30,6 +32,31 @@
 
   --sans: "Assistant", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --serif: "Fraunces", Georgia, "Times New Roman", serif;
+}
+
+:root[data-theme="dark"] {
+  --p1: #6f97ff;
+  --p1-soft: #1b2748;
+  --p1-ink: #a9c2ff;
+  --p2: #37c99a;
+  --p2-soft: #11302a;
+  --p2-ink: #7fe3c2;
+  --gold: #f6b23d;
+
+  --surface: #14182a;
+  --surface-2: #1b2039;
+  --paper: #171b2b;
+  --ink: #eef1fb;
+  --ink-soft: #a7adc6;
+  --ink-faint: #717897;
+  --line: #2a3150;
+  --danger: #ff7484;
+
+  --page-bg: #0b0e1b;
+  --dot: rgba(255, 255, 255, 0.05);
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 16px 40px -22px rgba(0, 0, 0, 0.7);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 20px -12px rgba(0, 0, 0, 0.55);
 }
 
 * {
@@ -47,10 +74,11 @@ body {
   font-family: var(--sans);
   color: var(--ink);
   /* Clean, crisp base with a subtle dot grid (modern SaaS look). */
-  background-color: #f3f5fc;
-  background-image: radial-gradient(circle at 1px 1px, rgba(30, 41, 82, 0.07) 1px, transparent 1.6px);
+  background-color: var(--page-bg);
+  background-image: radial-gradient(circle at 1px 1px, var(--dot) 1px, transparent 1.6px);
   background-size: 24px 24px;
   background-attachment: fixed;
+  transition: background-color 0.25s ease;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   line-height: 1.5;
@@ -88,6 +116,13 @@ body {
   display: inline-flex;
   text-decoration: none;
   line-height: 0;
+}
+/* The logo's navy wordmark needs a light badge to stay legible on dark. */
+:root[data-theme="dark"] .brand-lockup-link {
+  background: #fdfdff;
+  padding: 5px 12px;
+  border-radius: 13px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
 }
 .brand-img {
   height: clamp(32px, 8.5vw, 44px);
@@ -137,7 +172,7 @@ body {
   line-height: 1.02;
   margin: 0;
   letter-spacing: -0.02em;
-  background: linear-gradient(110deg, #1e3a8a 35%, var(--gold));
+  background: linear-gradient(110deg, var(--p1-ink) 30%, var(--gold));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -317,6 +352,32 @@ textarea.text-input {
 .mode-tile:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ---- Header actions & theme toggle ---- */
+.header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.theme-toggle {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 1.05rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.1s ease, border-color 0.15s;
+}
+.theme-toggle:hover {
+  transform: translateY(-1px);
+  border-color: var(--ink-faint);
 }
 
 /* ---- Segmented controls ---- */
