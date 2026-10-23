@@ -7,54 +7,29 @@
   --p2-soft: #e3f7ef;
   --p2-ink: #0a7a56;
 
-  /* Neutrals & surfaces */
-  --bg-a: #eef1ff;
-  --bg-b: #fdeef4;
-  --bg-c: #eafaf4;
+  /* Warm, light surfaces to match the logo (cream paper + royal blue + gold) */
+  --bg-a: #eef2ff;
+  --bg-b: #fef6ec;
+  --bg-c: #f4f8ff;
   --surface: #ffffff;
-  --surface-2: #f7f8fe;
+  --surface-2: #f6f5fb;
   --paper: #fffdf6;
-  --ink: #1b2138;
-  --ink-soft: #596078;
-  --ink-faint: #949bb2;
-  --line: #e9ebf5;
+  --ink: #1c2442;
+  --ink-soft: #5b6784;
+  --ink-faint: #99a0b8;
+  --line: #ebe7f3;
   --danger: #e2495a;
+  --gold: #f5a623;
 
   --radius: 22px;
   --radius-sm: 13px;
-  --shadow: 0 18px 50px -24px rgba(44, 54, 110, 0.45);
-  --shadow-sm: 0 6px 18px -8px rgba(44, 54, 110, 0.35);
-  --shadow-color-p1: 0 14px 30px -14px rgba(59, 108, 246, 0.6);
-  --shadow-color-p2: 0 14px 30px -14px rgba(20, 169, 122, 0.55);
+  --shadow: 0 18px 50px -24px rgba(44, 54, 110, 0.4);
+  --shadow-sm: 0 6px 18px -8px rgba(44, 54, 110, 0.3);
+  --shadow-color-p1: 0 14px 30px -14px rgba(59, 108, 246, 0.55);
+  --shadow-color-p2: 0 14px 30px -14px rgba(20, 169, 122, 0.5);
 
   --sans: "Assistant", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --serif: "Fraunces", Georgia, "Times New Roman", serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --p1: #6f97ff;
-    --p1-soft: #1c2748;
-    --p1-ink: #a9c2ff;
-    --p2: #37c99a;
-    --p2-soft: #122f29;
-    --p2-ink: #7fe3c2;
-
-    --bg-a: #0d1022;
-    --bg-b: #161228;
-    --bg-c: #0b1a1c;
-    --surface: #171b2e;
-    --surface-2: #1e2338;
-    --paper: #191d2c;
-    --ink: #eef0fb;
-    --ink-soft: #a7adc6;
-    --ink-faint: #6f7693;
-    --line: #2a3050;
-    --danger: #ff7484;
-
-    --shadow: 0 20px 55px -26px rgba(0, 0, 0, 0.75);
-    --shadow-sm: 0 8px 20px -10px rgba(0, 0, 0, 0.6);
-  }
 }
 
 * {
@@ -99,15 +74,9 @@ body::before {
   inset-inline-start: -14vmax;
 }
 body::after {
-  background: radial-gradient(circle, var(--p2), transparent 68%);
+  background: radial-gradient(circle, var(--gold), transparent 68%);
   bottom: -18vmax;
   inset-inline-end: -14vmax;
-}
-@media (prefers-color-scheme: dark) {
-  body::before,
-  body::after {
-    opacity: 0.22;
-  }
 }
 
 #root {
@@ -156,14 +125,6 @@ body::after {
   height: auto;
   margin-inline: auto;
   filter: drop-shadow(0 10px 26px rgba(20, 30, 70, 0.22));
-}
-@media (prefers-color-scheme: dark) {
-  .brand-img {
-    filter: drop-shadow(0 2px 8px rgba(120, 150, 255, 0.35));
-  }
-  .hero-logo {
-    filter: drop-shadow(0 8px 28px rgba(120, 150, 255, 0.3));
-  }
 }
 
 /* ---- Cards & layout ---- */
@@ -633,11 +594,6 @@ textarea.text-input {
 .banner-error {
   background: color-mix(in srgb, var(--danger) 16%, var(--surface));
   color: var(--danger);
-}
-@media (prefers-color-scheme: dark) {
-  .banner-warn {
-    color: #ffcf7a;
-  }
 }
 
 .link-field {
