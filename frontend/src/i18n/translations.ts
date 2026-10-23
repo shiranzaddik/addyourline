@@ -22,6 +22,8 @@ const en = {
   play_with_random_sub: "We'll match you — length is a surprise 🎲",
   play_with_friend: "Write with a friend",
   play_with_friend_sub: "Get a link to share",
+  create_invite: "Create invite link",
+  back: "Back",
   start: "Start",
   enter_name_first: "Please enter your name first",
 
@@ -118,6 +120,8 @@ const he: Record<TranslationKey, string> = {
   play_with_random_sub: "נמצא לכם כותב — האורך יהיה הפתעה 🎲",
   play_with_friend: "כתבו עם חבר",
   play_with_friend_sub: "קבלו קישור לשיתוף",
+  create_invite: "צרו קישור הזמנה",
+  back: "חזרה",
   start: "התחילו",
   enter_name_first: "אנא הכניסו את שמכם תחילה",
 
