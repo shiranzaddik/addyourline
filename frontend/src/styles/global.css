@@ -487,15 +487,6 @@ textarea.text-input {
 .story-paper .story-prose {
   font-size: 1.3rem;
 }
-.story-paper .story-prose::first-letter {
-  font-size: 3.1em;
-  font-weight: 600;
-  line-height: 0.8;
-  float: inline-start;
-  padding-inline-end: 10px;
-  padding-top: 6px;
-  color: var(--p1-ink);
-}
 
 /* ---- Handoff (last-2-words) hint ---- */
 .handoff-lead {
