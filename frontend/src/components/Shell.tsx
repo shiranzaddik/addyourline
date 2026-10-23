@@ -9,12 +9,8 @@ export function Shell({ children, showLang = true }: { children: ReactNode; show
   return (
     <div className="app-shell">
       <header className="brand">
-        <Link to="/" className="brand-logo">
-          <span>✍️</span>
-          <span>
-            {t("app_name")} <span className="dot-a">·</span>
-            <span className="dot-b">·</span>
-          </span>
+        <Link to="/" className="brand-logo" aria-label={t("app_name")}>
+          <img src="/icon.png" alt={t("app_name")} className="brand-img" />
         </Link>
         {showLang && <LanguageSelector />}
       </header>
