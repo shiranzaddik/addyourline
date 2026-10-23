@@ -33,6 +33,7 @@ export interface StoryState {
   completed_at: string | null;
   invite_url: string;
   share_url: string;
+  continuation_hint: string;
 }
 
 export interface JoinResponse {

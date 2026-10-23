@@ -10,7 +10,7 @@ import { loadConfig, type PublicConfig } from "../services/config";
 import { clearSession, getSession, markMatchedSeen, matchedSeen } from "../services/storage";
 import type { SocketMessage, StoryState } from "../types";
 import { getOpponent } from "../utils/players";
-import { countSentences } from "../utils/sentences";
+import { countSentences, lastWords } from "../utils/sentences";
 
 export function PlayPage() {
   const { storyId } = useParams<{ storyId: string }>();
@@ -299,10 +299,20 @@ export function PlayPage() {
 
         {myTurn ? (
           <div className="card stack">
-            <strong>{story.current_turn === 1 ? t("write_to_start") : t("continue_story")}</strong>
-            <p className="banner banner-info" style={{ margin: 0 }}>
-              {t("blind_hint")}
-            </p>
+            <div>
+              <strong>{story.current_turn === 1 ? t("write_to_start") : t("continue_story")}</strong>
+              <p className="muted" style={{ margin: "6px 0 0", fontSize: "0.88rem" }}>
+                {t("blind_hint")}
+              </p>
+            </div>
+            {story.continuation_hint && (
+              <div className="handoff-lead">
+                <span className="handoff-label">{t("continue_from")}</span>
+                <span className="handoff-chip" dir={story.language === "he" ? "rtl" : "ltr"}>
+                  …{story.continuation_hint}
+                </span>
+              </div>
+            )}
             <textarea
               className="text-input"
               value={text}
@@ -312,6 +322,14 @@ export function PlayPage() {
               onChange={(e) => setText(e.target.value)}
               autoFocus
             />
+            {text.trim() && (
+              <div className="handoff-out">
+                <span className="muted">{t("partner_will_see")}</span>
+                <span className="handoff-chip" dir={story.language === "he" ? "rtl" : "ltr"}>
+                  {lastWords(text) || "…"}
+                </span>
+              </div>
+            )}
             <div className="row-between">
               <span className="muted" style={{ fontSize: "0.85rem" }}>
                 {text.trim() && liveCount !== 2 ? t("two_sentences_rule") : ""}

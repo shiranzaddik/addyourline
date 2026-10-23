@@ -78,6 +78,15 @@ def serialize_story(story: Story) -> StoryState:
     ]
     active = story.active_player_number if story.status == STATUS_ACTIVE else None
     base = settings.public_base_url.rstrip("/")
+
+    # Handoff hint: the last two words of the most recent line, revealed to the
+    # active writer so they can continue. (The previous writer already knows
+    # these words, so this leaks nothing hidden.)
+    continuation_hint = ""
+    if story.status == STATUS_ACTIVE and story.sentences:
+        last = max(story.sentences, key=lambda s: s.position)
+        words = last.text.split()
+        continuation_hint = " ".join(words[-2:]) if words else ""
     return StoryState(
         id=story.id,
         language=story.language,
@@ -95,6 +104,7 @@ def serialize_story(story: Story) -> StoryState:
         completed_at=story.completed_at,
         invite_url=f"{base}/{story.id}",
         share_url=f"{base}/story/{story.id}",
+        continuation_hint=continuation_hint,
     )
 
 

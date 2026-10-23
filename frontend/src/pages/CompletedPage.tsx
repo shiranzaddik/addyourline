@@ -91,7 +91,7 @@ export function CompletedPage() {
           </div>
         </div>
 
-        <div className="card">
+        <div className="card story-paper">
           <StoryProse sentences={story.sentences} language={story.language} />
         </div>
 

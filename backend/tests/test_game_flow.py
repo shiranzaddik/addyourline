@@ -75,6 +75,22 @@ async def test_sentence_text_hidden_until_completed(client):
 
 
 @pytest.mark.asyncio
+async def test_continuation_hint_shows_last_two_words(client):
+    a = await _create_friend(client, turns=10)
+    sid = a["story"]["id"]
+    b = await _join(client, sid)
+    # Turn 1: nothing written yet, so no handoff hint.
+    assert b["story"]["continuation_hint"] == ""
+
+    await _submit(client, sid, a["token"], "The sun rose high. Birds sang loudly.")
+    state = (await client.get(f"/api/stories/{sid}")).json()["story"]
+    # The next writer sees only the last two words of the previous line.
+    assert state["continuation_hint"] == "sang loudly."
+    # The body text itself stays hidden until completion.
+    assert all(s["text"] == "" for s in state["sentences"])
+
+
+@pytest.mark.asyncio
 async def test_wrong_player_cannot_submit(client):
     a = await _create_friend(client, turns=10)
     story_id = a["story"]["id"]

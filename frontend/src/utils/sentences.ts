@@ -21,3 +21,9 @@ export function isValidContribution(text: string, maxLength: number): boolean {
   if (text.trim().length === 0 || text.length > maxLength) return false;
   return countSentences(text) === 2;
 }
+
+// The last N words of some text (the handoff passed to the next writer).
+export function lastWords(text: string, count = 2): string {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  return words.slice(-count).join(" ");
+}
