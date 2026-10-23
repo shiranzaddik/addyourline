@@ -27,3 +27,14 @@ export function lastWords(text: string, count = 2): string {
   const words = text.trim().split(/\s+/).filter(Boolean);
   return words.slice(-count).join(" ");
 }
+
+// The exact handoff the partner receives: the last 2 words of the LAST
+// sentence (mirrors the backend). Falls back to the last 2 words of the raw
+// text while the second sentence is still being typed.
+export function handoffHint(text: string): string {
+  const stripped = text.trim();
+  const matches = stripped.match(SENTENCE_RE) ?? [];
+  const sentences = matches.map((m) => m.trim()).filter(Boolean);
+  const last = sentences.length ? sentences[sentences.length - 1] : stripped;
+  return lastWords(last, 2);
+}

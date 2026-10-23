@@ -10,7 +10,7 @@ import { loadConfig, type PublicConfig } from "../services/config";
 import { clearSession, getSession, markMatchedSeen, matchedSeen } from "../services/storage";
 import type { SocketMessage, StoryState } from "../types";
 import { getOpponent } from "../utils/players";
-import { countSentences, lastWords } from "../utils/sentences";
+import { countSentences, handoffHint } from "../utils/sentences";
 
 export function PlayPage() {
   const { storyId } = useParams<{ storyId: string }>();
@@ -387,7 +387,7 @@ export function PlayPage() {
               <div className="handoff-out">
                 <span className="muted">{t("partner_will_see")}</span>
                 <span className="handoff-chip" dir={story.language === "he" ? "rtl" : "ltr"}>
-                  {lastWords(text) || "…"}
+                  {handoffHint(text) || "…"}
                 </span>
               </div>
             )}
