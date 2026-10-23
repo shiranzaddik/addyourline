@@ -319,6 +319,7 @@ textarea.text-input {
   flex-direction: column;
   gap: 6px;
   font-family: inherit;
+  color: var(--ink); /* buttons don't inherit text color — set it so titles aren't black */
   overflow: hidden;
 }
 .mode-tile::before {
