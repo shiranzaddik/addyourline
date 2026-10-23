@@ -121,10 +121,10 @@ body::after {
   filter: drop-shadow(0 2px 6px rgba(20, 30, 70, 0.22));
 }
 .hero-logo {
-  width: min(380px, 80%);
+  width: min(230px, 56%);
   height: auto;
   margin-inline: auto;
-  filter: drop-shadow(0 10px 26px rgba(20, 30, 70, 0.22));
+  filter: drop-shadow(0 8px 20px rgba(20, 30, 70, 0.18));
 }
 
 /* ---- Cards & layout ---- */
