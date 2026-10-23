@@ -71,6 +71,13 @@ export const api = {
     });
   },
 
+  updateSettings(storyId: string, token: string, totalTurns: number) {
+    return request<StoryStateResponse>(`/stories/${storyId}/settings`, {
+      method: "POST",
+      body: JSON.stringify({ token, total_turns: totalTurns }),
+    });
+  },
+
   cancelWaiting(storyId: string, token: string) {
     return request<{ ok: boolean }>(`/stories/${storyId}/cancel`, {
       method: "POST",

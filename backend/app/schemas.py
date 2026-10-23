@@ -49,6 +49,11 @@ class CancelMatchmakingRequest(BaseModel):
     token: str = Field(..., min_length=8)
 
 
+class UpdateSettingsRequest(BaseModel):
+    token: str = Field(..., min_length=8)
+    total_turns: int
+
+
 # ---- Responses --------------------------------------------------------------
 
 class PlayerPublic(BaseModel):

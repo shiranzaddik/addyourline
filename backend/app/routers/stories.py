@@ -15,6 +15,7 @@ from ..schemas import (
     PlayerPublic,
     StoryStateResponse,
     SubmitTurnRequest,
+    UpdateSettingsRequest,
 )
 from ..services import matchmaking
 from ..services.story_service import (
@@ -25,6 +26,7 @@ from ..services.story_service import (
     load_story,
     serialize_story,
     submit_turn,
+    update_turn_count,
 )
 from ..websocket import events
 
@@ -62,6 +64,17 @@ async def join_existing_story(
     await events.broadcast_state(story, events.PLAYER_JOINED)
     await events.broadcast_state(story, events.GAME_STARTED)
     return JoinResponse(token=token, player=_player_public(player), story=serialize_story(story))
+
+
+@router.post("/{story_id}/settings", response_model=StoryStateResponse, dependencies=[Depends(rate_limit)])
+async def update_story_settings(
+    story_id: str, req: UpdateSettingsRequest, db: AsyncSession = Depends(get_db)
+) -> StoryStateResponse:
+    story = await update_turn_count(db, story_id, req.token, req.total_turns)
+    player = find_player_by_token(story, req.token)
+    return StoryStateResponse(
+        story=serialize_story(story), you=_player_public(player) if player else None
+    )
 
 
 @router.get("/{story_id}", response_model=StoryStateResponse)

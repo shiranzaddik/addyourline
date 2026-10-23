@@ -27,6 +27,8 @@ export function PlayPage() {
   const [presence, setPresence] = useState<{ kind: "warn" | "info"; msg: string } | null>(null);
   const [cfg, setCfg] = useState<PublicConfig | null>(null);
   const [matchedAck, setMatchedAck] = useState(() => (storyId ? matchedSeen(storyId) : false));
+  const [customLen, setCustomLen] = useState("");
+  const [settingsError, setSettingsError] = useState<string | null>(null);
 
   // No local session for this story → send to the join landing.
   useEffect(() => {
@@ -144,6 +146,27 @@ export function PlayPage() {
       navigate("/");
     };
 
+    const presets = cfg?.allowed_turn_counts ?? [10, 20, 30];
+    const minT = cfg?.min_turns ?? 2;
+    const maxT = cfg?.max_turns ?? 50;
+    const changeTurns = async (n: number) => {
+      try {
+        const r = await api.updateSettings(story.id, session.token, n);
+        setStory(r.story);
+        setSettingsError(null);
+      } catch (e) {
+        setSettingsError(e instanceof ApiError ? tError(e.code) : t("err_request_failed"));
+      }
+    };
+    const applyCustom = () => {
+      const n = parseInt(customLen, 10);
+      if (!Number.isInteger(n) || n < minT || n > maxT) {
+        setSettingsError(t("turns_range_hint", { min: minT, max: maxT }));
+        return;
+      }
+      changeTurns(n);
+    };
+
     return (
       <Shell>
         <div className="centered">
@@ -162,6 +185,44 @@ export function PlayPage() {
 
             {story.mode === "friend" ? (
               <div className="stack">
+                <div>
+                  <label className="field-label">
+                    {t("choose_length")} · {story.total_turns} {t("turns_suffix")}
+                  </label>
+                  <div className="segmented">
+                    {presets.map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        className={story.total_turns === n ? "active" : ""}
+                        onClick={() => changeTurns(n)}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="link-field" style={{ marginTop: 10 }}>
+                    <input
+                      className="text-input"
+                      type="number"
+                      inputMode="numeric"
+                      min={minT}
+                      max={maxT}
+                      placeholder={`${minT}–${maxT}`}
+                      value={customLen}
+                      onChange={(e) => setCustomLen(e.target.value)}
+                    />
+                    <button className="btn btn-ghost" type="button" onClick={applyCustom}>
+                      {t("set_length")}
+                    </button>
+                  </div>
+                  {settingsError && (
+                    <div className="banner banner-error" style={{ marginTop: 8 }}>
+                      {settingsError}
+                    </div>
+                  )}
+                </div>
+
                 <div className="row-between">
                   <strong>{t("invite_a_friend")}</strong>
                 </div>

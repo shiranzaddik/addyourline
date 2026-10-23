@@ -143,6 +143,26 @@ async def create_friend_story(
     return story, player, token
 
 
+async def update_turn_count(
+    db: AsyncSession, story_id: str, token: str, total_turns: int
+) -> Story:
+    """Let the creator change a friend story's length while still waiting."""
+    story = await load_story(db, story_id)
+    if story is None:
+        raise GameError("story_not_found", status_code=404)
+    if story.status != STATUS_WAITING:
+        raise GameError("story_already_started")
+    player = find_player_by_token(story, token)
+    if player is None or player.player_number != 1:
+        raise GameError("invalid_token", status_code=403)
+    validate_turn_count(total_turns)
+    story.total_turns = total_turns
+    story.updated_at = _now()
+    await db.commit()
+    await db.refresh(story, attribute_names=["players", "sentences"])
+    return story
+
+
 async def join_story(
     db: AsyncSession, story_id: str, display_name: str
 ) -> tuple[Story, Player, str]:

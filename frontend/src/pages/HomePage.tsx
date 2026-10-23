@@ -1,35 +1,23 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Shell } from "../components/Shell";
 import { useI18n } from "../i18n/I18nContext";
 import { api, ApiError } from "../services/api";
-import { loadConfig } from "../services/config";
 import { getSavedName, saveName, saveSession } from "../services/storage";
 import type { JoinResponse } from "../types";
+
+// Default length for a new friend story; the creator can change it on the next
+// screen (alongside the share links) before their friend joins.
+const DEFAULT_TURNS = 10;
 
 export function HomePage() {
   const { t, tError, lang } = useI18n();
   const navigate = useNavigate();
 
   const [name, setName] = useState(getSavedName());
-  const [turnOptions, setTurnOptions] = useState<number[]>([10, 20, 30]);
-  const [turns, setTurns] = useState(10);
-  const [customMode, setCustomMode] = useState(false);
-  const [customValue, setCustomValue] = useState("");
-  const [range, setRange] = useState({ min: 2, max: 50 });
   const [busy, setBusy] = useState<"friend" | "random" | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showFriendOptions, setShowFriendOptions] = useState(false);
-
-  useEffect(() => {
-    loadConfig().then((c) => {
-      setTurnOptions(c.allowed_turn_counts);
-      setRange({ min: c.min_turns, max: c.max_turns });
-      if (!c.allowed_turn_counts.includes(turns)) setTurns(c.allowed_turn_counts[0]);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const afterJoin = (res: JoinResponse) => {
     saveName(name.trim());
@@ -42,40 +30,17 @@ export function HomePage() {
     navigate(`/play/${res.story.id}`);
   };
 
-  // Choosing "write with a friend" reveals the length options (step two).
-  const openFriend = () => {
-    setError(null);
-    if (!name.trim()) {
-      setError(t("enter_name_first"));
-      return;
-    }
-    setShowFriendOptions(true);
-  };
-
   const begin = async (mode: "friend" | "random") => {
     setError(null);
     if (!name.trim()) {
       setError(t("enter_name_first"));
       return;
     }
-    // Length only applies to friend mode; random length is chosen by the server.
-    let effectiveTurns = turns;
-    if (mode === "friend") {
-      effectiveTurns = customMode ? parseInt(customValue, 10) : turns;
-      if (
-        !Number.isInteger(effectiveTurns) ||
-        effectiveTurns < range.min ||
-        effectiveTurns > range.max
-      ) {
-        setError(t("turns_range_hint", { min: range.min, max: range.max }));
-        return;
-      }
-    }
     setBusy(mode);
     try {
       const res =
         mode === "friend"
-          ? await api.createFriendStory(name.trim(), lang, effectiveTurns)
+          ? await api.createFriendStory(name.trim(), lang, DEFAULT_TURNS)
           : await api.matchRandom(name.trim(), lang);
       afterJoin(res);
     } catch (e) {
@@ -109,100 +74,32 @@ export function HomePage() {
 
           {error && <div className="banner banner-error">{error}</div>}
 
-          {!showFriendOptions ? (
-            <div className="mode-grid">
-              <button
-                type="button"
-                className="mode-tile is-random"
-                disabled={busy !== null}
-                onClick={() => begin("random")}
-              >
-                <span className="mode-emoji">🎲</span>
-                <span className="mode-title">{t("play_with_random")}</span>
-                <span className="mode-sub">
-                  {busy === "random" ? t("loading") : t("play_with_random_sub")}
-                </span>
-              </button>
-              <button
-                type="button"
-                className="mode-tile is-friend"
-                disabled={busy !== null}
-                onClick={openFriend}
-              >
-                <span className="mode-emoji">💌</span>
-                <span className="mode-title">{t("play_with_friend")}</span>
-                <span className="mode-sub">{t("play_with_friend_sub")}</span>
-              </button>
-            </div>
-          ) : (
-            <div className="stack fade-in">
-              <div className="row-between">
-                <strong>💌 {t("play_with_friend")}</strong>
-                <button
-                  type="button"
-                  className="btn btn-ghost"
-                  onClick={() => {
-                    setShowFriendOptions(false);
-                    setError(null);
-                  }}
-                >
-                  {t("back")}
-                </button>
-              </div>
-              <div>
-                <label className="field-label">{t("number_of_turns")}</label>
-                <div className="segmented">
-                  {turnOptions.map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      className={!customMode && turns === n ? "active" : ""}
-                      onClick={() => {
-                        setCustomMode(false);
-                        setTurns(n);
-                      }}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    className={customMode ? "active" : ""}
-                    onClick={() => setCustomMode(true)}
-                  >
-                    {t("custom")}
-                  </button>
-                </div>
-                {customMode && (
-                  <div style={{ marginTop: 12 }}>
-                    <label className="field-label" htmlFor="custom-turns">
-                      {t("custom_turns_label", { min: range.min, max: range.max })}
-                    </label>
-                    <input
-                      id="custom-turns"
-                      className="text-input"
-                      type="number"
-                      inputMode="numeric"
-                      min={range.min}
-                      max={range.max}
-                      value={customValue}
-                      placeholder={`${range.min}–${range.max}`}
-                      onChange={(e) => setCustomValue(e.target.value)}
-                      autoFocus
-                    />
-                  </div>
-                )}
-              </div>
-              <button
-                type="button"
-                className="btn btn-green btn-lg btn-block"
-                disabled={busy !== null}
-                onClick={() => begin("friend")}
-              >
-                {busy === "friend" ? t("loading") : t("create_invite")}
-              </button>
-            </div>
-          )}
+          <div className="mode-grid">
+            <button
+              type="button"
+              className="mode-tile is-random"
+              disabled={busy !== null}
+              onClick={() => begin("random")}
+            >
+              <span className="mode-emoji">🎲</span>
+              <span className="mode-title">{t("play_with_random")}</span>
+              <span className="mode-sub">
+                {busy === "random" ? t("loading") : t("play_with_random_sub")}
+              </span>
+            </button>
+            <button
+              type="button"
+              className="mode-tile is-friend"
+              disabled={busy !== null}
+              onClick={() => begin("friend")}
+            >
+              <span className="mode-emoji">💌</span>
+              <span className="mode-title">{t("play_with_friend")}</span>
+              <span className="mode-sub">
+                {busy === "friend" ? t("loading") : t("play_with_friend_sub")}
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </Shell>

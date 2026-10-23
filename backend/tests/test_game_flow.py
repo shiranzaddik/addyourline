@@ -91,6 +91,25 @@ async def test_continuation_hint_shows_last_two_words(client):
 
 
 @pytest.mark.asyncio
+async def test_update_friend_length_while_waiting(client):
+    a = await _create_friend(client, turns=10)
+    sid = a["story"]["id"]
+    r = await client.post(
+        f"/api/stories/{sid}/settings", json={"token": a["token"], "total_turns": 20}
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["story"]["total_turns"] == 20
+
+    # Once a friend joins (game started), the length can no longer change.
+    await _join(client, sid)
+    r2 = await client.post(
+        f"/api/stories/{sid}/settings", json={"token": a["token"], "total_turns": 30}
+    )
+    assert r2.status_code == 400
+    assert r2.json()["code"] == "story_already_started"
+
+
+@pytest.mark.asyncio
 async def test_wrong_player_cannot_submit(client):
     a = await _create_friend(client, turns=10)
     story_id = a["story"]["id"]

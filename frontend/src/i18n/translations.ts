@@ -104,6 +104,9 @@ const en = {
   err_request_failed: "Something went wrong. Please try again.",
   err_story_not_active: "This story isn't active yet.",
   err_story_not_cancelable: "This story can no longer be cancelled.",
+  err_story_already_started: "The story has already started.",
+  set_length: "Set",
+  choose_length: "Story length",
 };
 
 const he: Record<TranslationKey, string> = {
@@ -199,6 +202,9 @@ const he: Record<TranslationKey, string> = {
   err_request_failed: "משהו השתבש. אנא נסו שוב.",
   err_story_not_active: "הסיפור הזה עדיין לא פעיל.",
   err_story_not_cancelable: "לא ניתן עוד לבטל את הסיפור הזה.",
+  err_story_already_started: "הסיפור כבר התחיל.",
+  set_length: "עדכנו",
+  choose_length: "אורך הסיפור",
 };
 
 export const translations: Record<Language, Record<TranslationKey, string>> = { en, he };
