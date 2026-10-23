@@ -3,12 +3,11 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { ShareButtons } from "../components/ShareButtons";
 import { Shell } from "../components/Shell";
-import { StoryProse } from "../components/StoryProse";
 import { useI18n } from "../i18n/I18nContext";
 import { useGameSocket } from "../hooks/useGameSocket";
 import { api, ApiError } from "../services/api";
 import { loadConfig, type PublicConfig } from "../services/config";
-import { clearSession, getSession } from "../services/storage";
+import { clearSession, getSession, markMatchedSeen, matchedSeen } from "../services/storage";
 import type { SocketMessage, StoryState } from "../types";
 import { getOpponent } from "../utils/players";
 import { countSentences } from "../utils/sentences";
@@ -26,8 +25,8 @@ export function PlayPage() {
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [presence, setPresence] = useState<{ kind: "warn" | "info"; msg: string } | null>(null);
-  const [highlightTurn, setHighlightTurn] = useState<number | undefined>();
   const [cfg, setCfg] = useState<PublicConfig | null>(null);
+  const [matchedAck, setMatchedAck] = useState(() => (storyId ? matchedSeen(storyId) : false));
 
   // No local session for this story → send to the join landing.
   useEffect(() => {
@@ -53,9 +52,6 @@ export function PlayPage() {
     (msg: SocketMessage) => {
       if (msg.type === "state") {
         setStory(msg.story);
-        if (msg.event === "turn_submitted" && msg.submitted_turn) {
-          setHighlightTurn(msg.submitted_turn);
-        }
       } else if (msg.type === "presence" && session) {
         if (msg.player_number === session.playerNumber) return; // ignore self
         const oppName = story ? getOpponent(story, session.playerNumber)?.display_name : undefined;
@@ -79,6 +75,23 @@ export function PlayPage() {
       navigate(`/story/${storyId}`, { replace: true });
     }
   }, [story?.status, storyId, navigate]);
+
+  // Show the "writer found" intro briefly, then start the game automatically.
+  useEffect(() => {
+    if (
+      story &&
+      story.status === "active" &&
+      !matchedAck &&
+      story.current_turn === 1 &&
+      story.sentences.length === 0
+    ) {
+      const timer = setTimeout(() => {
+        if (storyId) markMatchedSeen(storyId);
+        setMatchedAck(true);
+      }, 2200);
+      return () => clearTimeout(timer);
+    }
+  }, [story, matchedAck, storyId]);
 
   if (!session) return null;
 
@@ -175,6 +188,52 @@ export function PlayPage() {
     );
   }
 
+  // ---- "Writer found" intro (shown once, when the game first becomes active) ----
+  if (
+    story.status === "active" &&
+    !matchedAck &&
+    story.current_turn === 1 &&
+    story.sentences.length === 0
+  ) {
+    const i1 = story.players.find((p) => p.player_number === 1);
+    const i2 = story.players.find((p) => p.player_number === 2);
+    return (
+      <Shell>
+        <div className="centered">
+          <div className="card stack text-center fade-in">
+            <div style={{ fontSize: "2.6rem" }}>🤝</div>
+            <h1 className="hero-title" style={{ fontSize: "2rem" }}>
+              {t("writer_found")}
+            </h1>
+            {oppName && <p className="hero-sub">{t("matched_with", { name: oppName })}</p>}
+            <div className="player-pills" style={{ justifyContent: "center" }}>
+              {i1 && (
+                <span className="pill pill-p1">
+                  <span className="swatch" />
+                  {i1.display_name}
+                  {me === 1 ? ` (${t("you_label")})` : ""}
+                </span>
+              )}
+              {i2 && (
+                <span className="pill pill-p2">
+                  <span className="swatch" />
+                  {i2.display_name}
+                  {me === 2 ? ` (${t("you_label")})` : ""}
+                </span>
+              )}
+            </div>
+            <p className="muted">{t("matched_hint")}</p>
+            <div className="dots">
+              <span />
+              <span />
+              <span />
+            </div>
+          </div>
+        </div>
+      </Shell>
+    );
+  }
+
   // ---- Active game ----
   const myTurn = story.active_player_number === me;
   const activeIsP2 = story.active_player_number === 2;
@@ -238,22 +297,12 @@ export function PlayPage() {
           </div>
         )}
 
-        {story.sentences.length > 0 && (
-          <div className="card stack">
-            <strong className="muted">{t("the_story_so_far")}</strong>
-            <div className="story-scroll">
-              <StoryProse
-                sentences={story.sentences}
-                language={story.language}
-                highlightTurn={highlightTurn}
-              />
-            </div>
-          </div>
-        )}
-
         {myTurn ? (
           <div className="card stack">
             <strong>{story.current_turn === 1 ? t("write_to_start") : t("continue_story")}</strong>
+            <p className="banner banner-info" style={{ margin: 0 }}>
+              {t("blind_hint")}
+            </p>
             <textarea
               className="text-input"
               value={text}

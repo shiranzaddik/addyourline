@@ -1,8 +1,10 @@
-"""In-memory matchmaking queue for the 'random person' mode.
+"""In-memory matchmaking queue for the 'random writer' mode.
 
-Players who pick the same (language, total_turns) are paired. A waiting story is
-created for the first player; the next compatible player joins it and the game
-starts. A single asyncio lock serializes queue access to avoid races such as
+Players are paired by LANGUAGE only. The first player to arrive creates a
+waiting story with their chosen length; the next player of the same language
+joins it and the game starts, inheriting that length. A joiner's own length
+selection is therefore ignored — only the player who starts a game sets the
+length. A single asyncio lock serializes queue access to avoid races such as
 two players grabbing the same waiting story.
 """
 from __future__ import annotations
@@ -16,10 +18,10 @@ from ..config import settings
 from ..models import MODE_RANDOM, STATUS_WAITING, Player, Story
 from ..utils.security import generate_token, hash_token
 from ..utils.validation import validate_name
-from .story_service import GameError, join_story, load_story
+from .story_service import join_story, load_story, validate_turn_count
 
-# (language, total_turns) -> queue of waiting story ids
-_queue: dict[tuple[str, int], deque[str]] = defaultdict(deque)
+# language -> queue of waiting story ids
+_queue: dict[str, deque[str]] = defaultdict(deque)
 _lock = asyncio.Lock()
 
 
@@ -51,33 +53,31 @@ async def request_match(
     is now active; matched=False means they are waiting in a freshly created one.
     """
     name = validate_name(display_name, settings.max_name_length)
-    if total_turns not in settings.allowed_turn_count_set:
-        raise GameError("invalid_turn_count")
+    validate_turn_count(total_turns)
 
-    key = (language, total_turns)
     async with _lock:
-        q = _queue[key]
+        q = _queue[language]
         while q:
             waiting_id = q.popleft()
             waiting = await load_story(db, waiting_id)
             # Skip stale entries (cancelled, already full, or no longer waiting).
             if waiting is None or waiting.status != STATUS_WAITING or len(waiting.players) != 1:
                 continue
-            # Found a valid partner — join as player 2.
+            # Found a valid partner of the same language — join as player 2.
+            # The game keeps the waiting player's length; this joiner's pick is ignored.
             story, player, token = await join_story(db, waiting_id, name)
             return story, player, token, True
 
         # No partner available: create a new waiting story and enqueue it.
         story, player, token = await _create_random_story(db, name, language, total_turns)
-        _queue[key].append(story.id)
+        _queue[language].append(story.id)
         return story, player, token, False
 
 
 async def cancel_match(story_id: str, language: str, total_turns: int) -> None:
     """Remove a waiting story from the queue (player left the waiting room)."""
-    key = (language, total_turns)
     async with _lock:
-        q = _queue.get(key)
+        q = _queue.get(language)
         if q and story_id in q:
             # deque has no direct remove-by-value that is cheap, but queues are small.
             try:

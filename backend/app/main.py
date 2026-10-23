@@ -45,6 +45,8 @@ async def health() -> dict:
 async def public_config() -> dict:
     return {
         "allowed_turn_counts": sorted(settings.allowed_turn_count_set),
+        "min_turns": settings.min_turns,
+        "max_turns": settings.max_turns,
         "max_name_length": settings.max_name_length,
         "max_turn_length": settings.max_turn_length,
         "public_base_url": settings.public_base_url,

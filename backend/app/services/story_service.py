@@ -36,6 +36,12 @@ class GameError(Exception):
         self.status_code = status_code
 
 
+def validate_turn_count(total_turns: int) -> None:
+    """Allow any story length within the configured inclusive range."""
+    if not (settings.min_turns <= total_turns <= settings.max_turns):
+        raise GameError("invalid_turn_count")
+
+
 async def load_story(db: AsyncSession, story_id: str) -> Story | None:
     result = await db.execute(
         select(Story)
@@ -53,6 +59,10 @@ def _now() -> datetime:
 
 def serialize_story(story: Story) -> StoryState:
     players_by_id = {p.id: p for p in story.players}
+    # Exquisite-corpse rule: the written text stays hidden until the story is
+    # completed, so players write blind and the full story is revealed only at
+    # the end. We still expose counts/positions so the UI can show progress.
+    reveal = story.status == STATUS_COMPLETED
     sentences = [
         SentencePublic(
             id=s.id,
@@ -62,7 +72,7 @@ def serialize_story(story: Story) -> StoryState:
             else 0,
             position=s.position,
             turn_number=s.turn_number,
-            text=s.text,
+            text=s.text if reveal else "",
         )
         for s in sorted(story.sentences, key=lambda x: x.position)
     ]
@@ -101,8 +111,7 @@ async def create_friend_story(
     db: AsyncSession, display_name: str, language: str, total_turns: int
 ) -> tuple[Story, Player, str]:
     name = validate_name(display_name, settings.max_name_length)
-    if total_turns not in settings.allowed_turn_count_set:
-        raise GameError("invalid_turn_count")
+    validate_turn_count(total_turns)
 
     token = generate_token()
     story = Story(

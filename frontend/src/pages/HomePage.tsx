@@ -15,12 +15,16 @@ export function HomePage() {
   const [name, setName] = useState(getSavedName());
   const [turnOptions, setTurnOptions] = useState<number[]>([10, 20, 30]);
   const [turns, setTurns] = useState(10);
+  const [customMode, setCustomMode] = useState(false);
+  const [customValue, setCustomValue] = useState("");
+  const [range, setRange] = useState({ min: 2, max: 50 });
   const [busy, setBusy] = useState<"friend" | "random" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadConfig().then((c) => {
       setTurnOptions(c.allowed_turn_counts);
+      setRange({ min: c.min_turns, max: c.max_turns });
       if (!c.allowed_turn_counts.includes(turns)) setTurns(c.allowed_turn_counts[0]);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -43,12 +47,17 @@ export function HomePage() {
       setError(t("enter_name_first"));
       return;
     }
+    const effectiveTurns = customMode ? parseInt(customValue, 10) : turns;
+    if (!Number.isInteger(effectiveTurns) || effectiveTurns < range.min || effectiveTurns > range.max) {
+      setError(t("turns_range_hint", { min: range.min, max: range.max }));
+      return;
+    }
     setBusy(mode);
     try {
       const res =
         mode === "friend"
-          ? await api.createFriendStory(name.trim(), lang, turns)
-          : await api.matchRandom(name.trim(), lang, turns);
+          ? await api.createFriendStory(name.trim(), lang, effectiveTurns)
+          : await api.matchRandom(name.trim(), lang, effectiveTurns);
       afterJoin(res);
     } catch (e) {
       setError(e instanceof ApiError ? tError(e.code) : t("err_request_failed"));
@@ -86,13 +95,42 @@ export function HomePage() {
                 <button
                   key={n}
                   type="button"
-                  className={turns === n ? "active" : ""}
-                  onClick={() => setTurns(n)}
+                  className={!customMode && turns === n ? "active" : ""}
+                  onClick={() => {
+                    setCustomMode(false);
+                    setTurns(n);
+                  }}
                 >
-                  {n} {t("turns_suffix")}
+                  {n}
                 </button>
               ))}
+              <button
+                type="button"
+                className={customMode ? "active" : ""}
+                onClick={() => setCustomMode(true)}
+              >
+                {t("custom")}
+              </button>
             </div>
+            {customMode && (
+              <div style={{ marginTop: 12 }}>
+                <label className="field-label" htmlFor="custom-turns">
+                  {t("custom_turns_label", { min: range.min, max: range.max })}
+                </label>
+                <input
+                  id="custom-turns"
+                  className="text-input"
+                  type="number"
+                  inputMode="numeric"
+                  min={range.min}
+                  max={range.max}
+                  value={customValue}
+                  placeholder={`${range.min}–${range.max}`}
+                  onChange={(e) => setCustomValue(e.target.value)}
+                  autoFocus
+                />
+              </div>
+            )}
           </div>
 
           {error && <div className="banner banner-error">{error}</div>}

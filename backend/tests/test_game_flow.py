@@ -53,6 +53,28 @@ async def test_friend_full_game(client):
 
 
 @pytest.mark.asyncio
+async def test_sentence_text_hidden_until_completed(client):
+    a = await _create_friend(client, turns=2)
+    story_id = a["story"]["id"]
+    b = await _join(client, story_id)
+
+    # After turn 1 the story is still active -> text must be redacted.
+    await _submit(client, story_id, a["token"], "Secret one. Secret two.")
+    mid = await client.get(f"/api/stories/{story_id}")
+    assert mid.json()["story"]["status"] == "active"
+    assert all(s["text"] == "" for s in mid.json()["story"]["sentences"])
+    # Positions/turns are still exposed for progress.
+    assert len(mid.json()["story"]["sentences"]) == 2
+
+    # Completing the story reveals the full text.
+    await _submit(client, story_id, b["token"], "Reveal three. Reveal four.")
+    done = await client.get(f"/api/stories/{story_id}")
+    assert done.json()["story"]["status"] == "completed"
+    texts = [s["text"] for s in done.json()["story"]["sentences"]]
+    assert "Secret one." in texts and "Reveal three." in texts
+
+
+@pytest.mark.asyncio
 async def test_wrong_player_cannot_submit(client):
     a = await _create_friend(client, turns=10)
     story_id = a["story"]["id"]
@@ -126,16 +148,55 @@ async def test_matchmaking_pairs_two_players(client):
 
 
 @pytest.mark.asyncio
-async def test_matchmaking_respects_settings(client):
+async def test_matchmaking_pairs_regardless_of_length(client):
+    # Random mode pairs on language only; the joiner's length pick is ignored
+    # and the game keeps the waiting (first) player's length.
     r1 = await client.post(
         "/api/matchmaking", json={"display_name": "P1", "language": "en", "total_turns": 10}
     )
-    # Different turn count should NOT match the waiting player.
+    story_id = r1.json()["story"]["id"]
     r2 = await client.post(
         "/api/matchmaking", json={"display_name": "P2", "language": "en", "total_turns": 20}
     )
+    body2 = r2.json()
+    assert body2["story"]["id"] == story_id  # matched despite different length pick
+    assert body2["story"]["status"] == "active"
+    assert body2["story"]["total_turns"] == 10  # first player's length wins
+
+
+@pytest.mark.asyncio
+async def test_matchmaking_requires_same_language(client):
+    r1 = await client.post(
+        "/api/matchmaking", json={"display_name": "P1", "language": "en", "total_turns": 10}
+    )
+    # Different language should NOT match the waiting player.
+    r2 = await client.post(
+        "/api/matchmaking", json={"display_name": "P2", "language": "he", "total_turns": 10}
+    )
     assert r1.json()["story"]["id"] != r2.json()["story"]["id"]
     assert r2.json()["story"]["status"] == "waiting"
+
+
+@pytest.mark.asyncio
+async def test_custom_turn_count_within_range_allowed(client):
+    # 7 is not a preset but is within the allowed 2..50 range.
+    resp = await client.post(
+        "/api/stories",
+        json={"display_name": "Alice", "language": "en", "total_turns": 7, "mode": "friend"},
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["story"]["total_turns"] == 7
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("bad", [1, 0, 51, 999])
+async def test_turn_count_out_of_range_rejected(client, bad):
+    resp = await client.post(
+        "/api/stories",
+        json={"display_name": "Alice", "language": "en", "total_turns": bad, "mode": "friend"},
+    )
+    assert resp.status_code == 400
+    assert resp.json()["code"] == "invalid_turn_count"
 
 
 @pytest.mark.asyncio

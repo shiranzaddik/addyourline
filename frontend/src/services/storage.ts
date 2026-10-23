@@ -39,6 +39,24 @@ export function clearSession(storyId: string): void {
   }
 }
 
+// Tracks whether the "writer found" intro has already been shown for a story,
+// so it appears once (not again after a refresh mid-game).
+export function matchedSeen(storyId: string): boolean {
+  try {
+    return localStorage.getItem(`ayl:matched:${storyId}`) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function markMatchedSeen(storyId: string): void {
+  try {
+    localStorage.setItem(`ayl:matched:${storyId}`, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
 export function getSavedName(): string {
   try {
     return localStorage.getItem(NAME_KEY) ?? "";
