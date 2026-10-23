@@ -12,7 +12,7 @@ interface ThemeValue {
 const ThemeContext = createContext<ThemeValue | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => getSavedTheme() ?? "light");
+  const [theme, setTheme] = useState<Theme>(() => getSavedTheme() ?? "dark");
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;

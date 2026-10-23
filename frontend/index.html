@@ -8,12 +8,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#1e3a8a" />
     <script>
-      // Apply the saved theme before paint to avoid a flash.
+      // Dark by default; a saved "light" choice opts out. Applied before paint.
       try {
-        if (localStorage.getItem("ayl:theme") === "dark") {
+        if (localStorage.getItem("ayl:theme") !== "light") {
           document.documentElement.dataset.theme = "dark";
         }
-      } catch (e) {}
+      } catch (e) {
+        document.documentElement.dataset.theme = "dark";
+      }
     </script>
     <title>Add Your Line — Write a story together</title>
     <meta name="description" content="Write a short story together, two sentences at a time. Play with a friend or a random writer, in English or Hebrew." />
