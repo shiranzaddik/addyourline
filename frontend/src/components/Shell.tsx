@@ -11,6 +11,7 @@ export function Shell({ children, showLang = true }: { children: ReactNode; show
       <header className="brand">
         <Link to="/" className="brand-lockup-link" aria-label="Add Your Line">
           <img src="/logo.png" alt="Add Your Line" className="brand-img" />
+          <img src="/icon.png" alt="Add Your Line" className="brand-icon" />
         </Link>
         {showLang && <LanguageSelector />}
       </header>
