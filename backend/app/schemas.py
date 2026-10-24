@@ -85,9 +85,6 @@ class StoryState(BaseModel):
     completed_at: datetime | None
     invite_url: str
     share_url: str
-    # The last 2 words of the previous turn, shown to the active writer as a
-    # handoff hint (empty on turn 1, while waiting, or once completed).
-    continuation_hint: str = ""
 
 
 class JoinResponse(BaseModel):

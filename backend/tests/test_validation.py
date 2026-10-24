@@ -1,55 +1,46 @@
-"""Unit tests for sentence validation (English and Hebrew)."""
+"""Unit tests for contribution validation (minimum word count, EN and HE)."""
 import pytest
 
-from app.utils.validation import ValidationError, count_sentences, validate_contribution
+from app.utils.validation import ValidationError, count_words, validate_contribution
 
 
 @pytest.mark.parametrize(
     "text,expected",
     [
-        ("Hello world. This is fun!", 2),
-        ("One sentence only.", 1),
-        ("Three. Little. Sentences.", 3),
-        ("No punctuation here", -1),  # unterminated
-        ("First one. Second without end", -1),
+        ("one two three four", 4),
+        ("only three words", 3),
         ("   ", 0),
-        ("What a day! Really?", 2),
-        ("היום יום יפה. השמש זורחת בחוץ!", 2),  # Hebrew, two sentences
-        ("שלום לכולם.", 1),  # Hebrew, one sentence
-        ("Wait... Then go!", 2),  # ellipsis counts as one terminator
+        ("Hello, world! Nice day.", 4),
+        ("יום אחד הלך ילד לטייל בגינה ומצא חתול.", 8),  # Hebrew
+        ("a b c", 3),
     ],
 )
-def test_count_sentences(text, expected):
-    assert count_sentences(text) == expected
+def test_count_words(text, expected):
+    assert count_words(text) == expected
 
 
 def test_validate_contribution_ok_english():
-    out = validate_contribution("The sun rose. Birds began to sing.", 600)
-    assert out == "The sun rose. Birds began to sing."
+    out = validate_contribution("the sun rose over the hills", 600, 4)
+    assert out == "the sun rose over the hills"
 
 
 def test_validate_contribution_ok_hebrew():
-    out = validate_contribution("הסיפור מתחיל כאן. הגיבור יוצא לדרך.", 600)
-    assert "הסיפור" in out
+    out = validate_contribution("יום אחד הלך ילד לטייל בגינה", 600, 4)
+    assert "יום" in out
 
 
-def test_validate_contribution_rejects_one_sentence():
+def test_validate_contribution_rejects_too_few_words():
     with pytest.raises(ValidationError) as exc:
-        validate_contribution("Only one sentence here.", 600)
-    assert str(exc.value) == "needs_two_sentences"
-
-
-def test_validate_contribution_rejects_three_sentences():
-    with pytest.raises(ValidationError):
-        validate_contribution("One. Two. Three.", 600)
+        validate_contribution("only three words", 600, 4)
+    assert str(exc.value) == "needs_min_words"
 
 
 def test_validate_contribution_rejects_empty():
     with pytest.raises(ValidationError):
-        validate_contribution("   ", 600)
+        validate_contribution("   ", 600, 4)
 
 
 def test_validate_contribution_rejects_too_long():
     with pytest.raises(ValidationError) as exc:
-        validate_contribution("A. B.", 3)
+        validate_contribution("one two three four", 5, 4)
     assert str(exc.value) == "too_long"

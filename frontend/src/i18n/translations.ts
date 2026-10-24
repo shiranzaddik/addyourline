@@ -50,11 +50,11 @@ const en = {
 
   // Game
   turn_indicator: "Turn {current} / {total}",
-  write_to_start: "Write 2 sentences to start the story",
-  continue_story: "Add the next 2 sentences",
-  blind_hint: "You only get the last 2 words — the rest of the story is revealed at the end! 🙈",
-  continue_from: "Continue from…",
-  partner_will_see: "Your partner will only see:",
+  write_to_start: "Write a line to start the story",
+  continue_story: "Continue the story",
+  min_words_hint: "Write at least {min} words.",
+  min_words_rule: "At least {min} words, please.",
+  words_count: "{n} words",
   write_here: "Write here…",
   your_turn: "Your turn",
   waiting_for: "Waiting for {name}…",
@@ -89,6 +89,7 @@ const en = {
 
   // Errors (by backend code)
   err_needs_two_sentences: "Please write exactly two sentences.",
+  err_needs_min_words: "Please write at least 4 words.",
   err_too_long: "That's a bit too long — please shorten it.",
   err_empty: "Please write something first.",
   err_not_your_turn: "It's not your turn yet.",
@@ -152,11 +153,11 @@ const he: Record<TranslationKey, string> = {
   start_writing: "התחילו לכתוב ✍️",
 
   turn_indicator: "תור {current} / {total}",
-  write_to_start: "כתבו 2 משפטים כדי להתחיל את הסיפור",
-  continue_story: "הוסיפו את שני המשפטים הבאים",
-  blind_hint: "אתם מקבלים רק את 2 המילים האחרונות — שאר הסיפור ייחשף בסוף! 🙈",
-  continue_from: "המשיכו מ…",
-  partner_will_see: "השותף שלכם יראה רק את:",
+  write_to_start: "כתבו שורה כדי להתחיל את הסיפור",
+  continue_story: "המשיכו את הסיפור",
+  min_words_hint: "כתבו לפחות {min} מילים.",
+  min_words_rule: "לפחות {min} מילים, בבקשה.",
+  words_count: "{n} מילים",
   write_here: "כתבו כאן…",
   your_turn: "תורכם",
   waiting_for: "ממתינים ל{name}…",
@@ -188,6 +189,7 @@ const he: Record<TranslationKey, string> = {
   go_to_story: "עברו לסיפור",
 
   err_needs_two_sentences: "אנא כתבו בדיוק שני משפטים.",
+  err_needs_min_words: "אנא כתבו לפחות 4 מילים.",
   err_too_long: "זה קצת ארוך מדי — אנא קצרו.",
   err_empty: "אנא כתבו משהו תחילה.",
   err_not_your_turn: "זה עדיין לא תורכם.",

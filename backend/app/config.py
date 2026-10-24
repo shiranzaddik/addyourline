@@ -19,13 +19,14 @@ class Settings(BaseSettings):
 
     # Gameplay limits.
     max_name_length: int = 40
-    max_turn_length: int = 600  # characters for a two-sentence contribution
+    max_turn_length: int = 600  # characters for a contribution
+    min_words: int = 4  # minimum words per contribution
     allowed_turn_counts: str = "10,20,30"  # quick-pick presets shown in the UI
     # Custom story lengths are allowed within this inclusive range.
     min_turns: int = 2
     max_turns: int = 50
-    # Random mode ignores the players' length choice and picks one of these.
-    random_turn_counts: str = "10,20,30"
+    # Random mode ignores the players' length choice and picks one of these (max 10).
+    random_turn_counts: str = "6,8,10"
 
     # Simple per-IP rate limiting (requests per window) for write endpoints.
     rate_limit_requests: int = 60

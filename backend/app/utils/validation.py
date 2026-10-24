@@ -35,8 +35,13 @@ def count_sentences(text: str) -> int:
     return len(sentences)
 
 
-def validate_contribution(text: str, max_length: int) -> str:
-    """Validate a two-sentence contribution and return the normalized text.
+def count_words(text: str) -> int:
+    """Count words (whitespace-separated tokens containing a letter or digit)."""
+    return len([t for t in text.split() if re.search(r"[^\W_]", t)])
+
+
+def validate_contribution(text: str, max_length: int, min_words: int = 4) -> str:
+    """Validate a contribution (at least ``min_words`` words) and normalize it.
 
     Raises ValidationError with a machine-readable code when invalid.
     """
@@ -47,13 +52,8 @@ def validate_contribution(text: str, max_length: int) -> str:
         raise ValidationError("empty")
     if len(normalized) > max_length:
         raise ValidationError("too_long")
-
-    count = count_sentences(normalized)
-    if count == -1:
-        # Unterminated trailing sentence (missing final punctuation).
-        raise ValidationError("needs_two_sentences")
-    if count != 2:
-        raise ValidationError("needs_two_sentences")
+    if count_words(normalized) < min_words:
+        raise ValidationError("needs_min_words")
     return normalized
 
 

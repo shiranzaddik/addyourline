@@ -59,10 +59,7 @@ def _now() -> datetime:
 
 def serialize_story(story: Story) -> StoryState:
     players_by_id = {p.id: p for p in story.players}
-    # Exquisite-corpse rule: the written text stays hidden until the story is
-    # completed, so players write blind and the full story is revealed only at
-    # the end. We still expose counts/positions so the UI can show progress.
-    reveal = story.status == STATUS_COMPLETED
+    # The full story so far is visible to both players during the game.
     sentences = [
         SentencePublic(
             id=s.id,
@@ -72,21 +69,12 @@ def serialize_story(story: Story) -> StoryState:
             else 0,
             position=s.position,
             turn_number=s.turn_number,
-            text=s.text if reveal else "",
+            text=s.text,
         )
         for s in sorted(story.sentences, key=lambda x: x.position)
     ]
     active = story.active_player_number if story.status == STATUS_ACTIVE else None
     base = settings.public_base_url.rstrip("/")
-
-    # Handoff hint: the last two words of the most recent line, revealed to the
-    # active writer so they can continue. (The previous writer already knows
-    # these words, so this leaks nothing hidden.)
-    continuation_hint = ""
-    if story.status == STATUS_ACTIVE and story.sentences:
-        last = max(story.sentences, key=lambda s: s.position)
-        words = last.text.split()
-        continuation_hint = " ".join(words[-2:]) if words else ""
     return StoryState(
         id=story.id,
         language=story.language,
@@ -104,7 +92,6 @@ def serialize_story(story: Story) -> StoryState:
         completed_at=story.completed_at,
         invite_url=f"{base}/{story.id}",
         share_url=f"{base}/story/{story.id}",
-        continuation_hint=continuation_hint,
     )
 
 
@@ -196,10 +183,10 @@ async def join_story(
 async def submit_turn(
     db: AsyncSession, story_id: str, token: str, text: str
 ) -> tuple[Story, int]:
-    """Submit the active player's two sentences. Returns (story, submitted_turn).
+    """Submit the active player's contribution. Returns (story, submitted_turn).
 
-    Enforces: valid token, correct active player, game active, exactly two
-    sentences, no duplicate/past-turn submission. Runs atomically.
+    Enforces: valid token, correct active player, game active, minimum word
+    count, no duplicate/past-turn submission. Runs atomically.
     """
     story = await load_story(db, story_id)
     if story is None:
@@ -216,7 +203,7 @@ async def submit_turn(
         raise GameError("not_your_turn", status_code=409)
 
     try:
-        normalized = validate_contribution(text, settings.max_turn_length)
+        normalized = validate_contribution(text, settings.max_turn_length, settings.min_words)
     except ValidationError as exc:
         raise GameError(str(exc)) from exc
 
@@ -231,27 +218,15 @@ async def submit_turn(
     if existing.first() is not None:
         raise GameError("turn_already_submitted", status_code=409)
 
-    # Split the contribution into its two sentences for separate storage.
-    first_text, second_text = _split_two_sentences(normalized)
-    base_position = (submitted_turn - 1) * 2
-
-    db.add_all(
-        [
-            Sentence(
-                story_id=story.id,
-                player_id=player.id,
-                position=base_position,
-                turn_number=submitted_turn,
-                text=first_text,
-            ),
-            Sentence(
-                story_id=story.id,
-                player_id=player.id,
-                position=base_position + 1,
-                turn_number=submitted_turn,
-                text=second_text,
-            ),
-        ]
+    # Store the whole contribution as one entry for this turn.
+    db.add(
+        Sentence(
+            story_id=story.id,
+            player_id=player.id,
+            position=submitted_turn - 1,
+            turn_number=submitted_turn,
+            text=normalized,
+        )
     )
 
     # Advance the turn, or complete the story.
@@ -265,17 +240,3 @@ async def submit_turn(
     await db.commit()
     await db.refresh(story, attribute_names=["players", "sentences"])
     return story, submitted_turn
-
-
-def _split_two_sentences(text: str) -> tuple[str, str]:
-    """Split a validated two-sentence string into its two sentences."""
-    from ..utils.validation import _SENTENCE_RE  # local import to avoid cycle at top
-
-    matches = [m.strip() for m in _SENTENCE_RE.findall(text) if m.strip()]
-    if len(matches) >= 2:
-        # Everything from the 2nd match onward goes into sentence two (defensive).
-        first = matches[0]
-        second = " ".join(matches[1:])
-        return first, second
-    # Fallback (should not happen after validation): keep whole text as one.
-    return text, ""

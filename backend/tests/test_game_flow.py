@@ -45,49 +45,24 @@ async def test_friend_full_game(client):
     assert r2.status_code == 200, r2.text
     final = r2.json()["story"]
     assert final["status"] == "completed"
-    # 2 turns * 2 sentences = 4 sentence records.
-    assert len(final["sentences"]) == 4
-    assert [s["position"] for s in final["sentences"]] == [0, 1, 2, 3]
+    # One entry per turn -> 2 entries for a 2-turn game.
+    assert len(final["sentences"]) == 2
+    assert [s["position"] for s in final["sentences"]] == [0, 1]
     assert final["sentences"][0]["player_number"] == 1
-    assert final["sentences"][2]["player_number"] == 2
+    assert final["sentences"][1]["player_number"] == 2
 
 
 @pytest.mark.asyncio
-async def test_sentence_text_hidden_until_completed(client):
+async def test_story_text_is_visible_during_play(client):
     a = await _create_friend(client, turns=2)
     story_id = a["story"]["id"]
     b = await _join(client, story_id)
 
-    # After turn 1 the story is still active -> text must be redacted.
-    await _submit(client, story_id, a["token"], "Secret one. Secret two.")
+    await _submit(client, story_id, a["token"], "Once upon a midnight dreary.")
     mid = await client.get(f"/api/stories/{story_id}")
     assert mid.json()["story"]["status"] == "active"
-    assert all(s["text"] == "" for s in mid.json()["story"]["sentences"])
-    # Positions/turns are still exposed for progress.
-    assert len(mid.json()["story"]["sentences"]) == 2
-
-    # Completing the story reveals the full text.
-    await _submit(client, story_id, b["token"], "Reveal three. Reveal four.")
-    done = await client.get(f"/api/stories/{story_id}")
-    assert done.json()["story"]["status"] == "completed"
-    texts = [s["text"] for s in done.json()["story"]["sentences"]]
-    assert "Secret one." in texts and "Reveal three." in texts
-
-
-@pytest.mark.asyncio
-async def test_continuation_hint_shows_last_two_words(client):
-    a = await _create_friend(client, turns=10)
-    sid = a["story"]["id"]
-    b = await _join(client, sid)
-    # Turn 1: nothing written yet, so no handoff hint.
-    assert b["story"]["continuation_hint"] == ""
-
-    await _submit(client, sid, a["token"], "The sun rose high. Birds sang loudly.")
-    state = (await client.get(f"/api/stories/{sid}")).json()["story"]
-    # The next writer sees only the last two words of the previous line.
-    assert state["continuation_hint"] == "sang loudly."
-    # The body text itself stays hidden until completion.
-    assert all(s["text"] == "" for s in state["sentences"])
+    # The written text is visible while the game is in progress.
+    assert mid.json()["story"]["sentences"][0]["text"] == "Once upon a midnight dreary."
 
 
 @pytest.mark.asyncio
@@ -121,13 +96,13 @@ async def test_wrong_player_cannot_submit(client):
 
 
 @pytest.mark.asyncio
-async def test_invalid_sentence_count_rejected(client):
+async def test_too_few_words_rejected(client):
     a = await _create_friend(client, turns=10)
     story_id = a["story"]["id"]
     await _join(client, story_id)
-    r = await _submit(client, story_id, a["token"], "Only one sentence.")
+    r = await _submit(client, story_id, a["token"], "only three words")  # < 4 words
     assert r.status_code == 400
-    assert r.json()["code"] == "needs_two_sentences"
+    assert r.json()["code"] == "needs_min_words"
 
 
 @pytest.mark.asyncio
@@ -170,7 +145,7 @@ async def test_matchmaking_pairs_two_players(client):
     assert r1.json()["story"]["status"] == "waiting"
     story_id = r1.json()["story"]["id"]
     # Length is chosen randomly by the server from the configured pool.
-    assert r1.json()["story"]["total_turns"] in (10, 20, 30)
+    assert r1.json()["story"]["total_turns"] in (6, 8, 10)
 
     r2 = await client.post(
         "/api/matchmaking", json={"display_name": "P2", "language": "en"}
@@ -189,7 +164,7 @@ async def test_matchmaking_random_length_is_server_chosen(client):
     r1 = await client.post("/api/matchmaking", json={"display_name": "P1", "language": "en"})
     story_id = r1.json()["story"]["id"]
     assigned = r1.json()["story"]["total_turns"]
-    assert assigned in (10, 20, 30)
+    assert assigned in (6, 8, 10)  # random pool, capped at 10
     r2 = await client.post("/api/matchmaking", json={"display_name": "P2", "language": "en"})
     body2 = r2.json()
     assert body2["story"]["id"] == story_id
@@ -244,13 +219,13 @@ async def test_completed_story_is_public_and_immutable(client):
     a = await _create_friend(client, turns=2)
     story_id = a["story"]["id"]
     b = await _join(client, story_id)
-    await _submit(client, story_id, a["token"], "One. Two.")
-    await _submit(client, story_id, b["token"], "Three. Four.")
+    await _submit(client, story_id, a["token"], "the first line of four")
+    await _submit(client, story_id, b["token"], "the second line of four")
     # Public read without token.
     r = await client.get(f"/api/stories/{story_id}")
     assert r.status_code == 200
     assert r.json()["story"]["status"] == "completed"
     # Further submissions are rejected.
-    r2 = await _submit(client, story_id, a["token"], "Five. Six.")
+    r2 = await _submit(client, story_id, a["token"], "this one should fail")
     assert r2.status_code == 400
     assert r2.json()["code"] == "story_completed"

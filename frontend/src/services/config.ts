@@ -6,6 +6,7 @@ export interface PublicConfig {
   max_turns: number;
   max_name_length: number;
   max_turn_length: number;
+  min_words: number;
   public_base_url: string;
 }
 
@@ -15,6 +16,7 @@ const FALLBACK: PublicConfig = {
   max_turns: 50,
   max_name_length: 40,
   max_turn_length: 600,
+  min_words: 4,
   public_base_url: "",
 };
 

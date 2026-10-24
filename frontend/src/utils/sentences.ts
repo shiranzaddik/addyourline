@@ -1,42 +1,16 @@
-// Client-side mirror of the backend sentence counter, for instant feedback.
-// The backend remains authoritative.
+// Client-side contribution validation: at least N words. The backend remains
+// authoritative. \p{L}/\p{N} are used because JS \w is ASCII-only (excludes Hebrew).
 
-const TERMINALS = ".!?…！？。";
-const escaped = TERMINALS.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-const SENTENCE_RE = new RegExp(`[^${escaped}]*[${escaped}]+`, "g");
-// A sentence body must contain a letter or digit of ANY script. Note: \w/\W in
-// JS are ASCII-only even with /u, which wrongly excluded Hebrew — use \p{L}/\p{N}.
-const HAS_WORD_RE = /[\p{L}\p{N}]/u;
+const WORD_CHAR_RE = /[\p{L}\p{N}]/u;
 
-// Returns the number of terminated sentences, or -1 if there is trailing
-// unterminated text (i.e. a sentence missing its final punctuation).
-export function countSentences(text: string): number {
-  const stripped = text.trim();
-  if (!stripped) return 0;
-  const matches = stripped.match(SENTENCE_RE) ?? [];
-  const consumed = matches.join("");
-  if (consumed.trim() !== stripped) return -1;
-  return matches.filter((m) => m.trim() && HAS_WORD_RE.test(m)).length;
+export function countWords(text: string): number {
+  return text
+    .trim()
+    .split(/\s+/)
+    .filter((w) => WORD_CHAR_RE.test(w)).length;
 }
 
-export function isValidContribution(text: string, maxLength: number): boolean {
-  if (text.trim().length === 0 || text.length > maxLength) return false;
-  return countSentences(text) === 2;
-}
-
-// The last N words of some text (the handoff passed to the next writer).
-export function lastWords(text: string, count = 2): string {
-  const words = text.trim().split(/\s+/).filter(Boolean);
-  return words.slice(-count).join(" ");
-}
-
-// The exact handoff the partner receives: the last 2 words of the LAST
-// sentence (mirrors the backend). Falls back to the last 2 words of the raw
-// text while the second sentence is still being typed.
-export function handoffHint(text: string): string {
-  const stripped = text.trim();
-  const matches = stripped.match(SENTENCE_RE) ?? [];
-  const sentences = matches.map((m) => m.trim()).filter(Boolean);
-  const last = sentences.length ? sentences[sentences.length - 1] : stripped;
-  return lastWords(last, 2);
+export function isValidContribution(text: string, maxLength: number, minWords: number): boolean {
+  if (text.length > maxLength) return false;
+  return countWords(text) >= minWords;
 }

@@ -49,6 +49,7 @@ async def public_config() -> dict:
         "max_turns": settings.max_turns,
         "max_name_length": settings.max_name_length,
         "max_turn_length": settings.max_turn_length,
+        "min_words": settings.min_words,
         "public_base_url": settings.public_base_url,
     }
 

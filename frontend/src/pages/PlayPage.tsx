@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { ShareButtons } from "../components/ShareButtons";
 import { Shell } from "../components/Shell";
+import { StoryProse } from "../components/StoryProse";
 import { useI18n } from "../i18n/I18nContext";
 import { useGameSocket } from "../hooks/useGameSocket";
 import { api, ApiError } from "../services/api";
@@ -10,7 +11,7 @@ import { loadConfig, type PublicConfig } from "../services/config";
 import { clearSession, getSession, markMatchedSeen, matchedSeen } from "../services/storage";
 import type { SocketMessage, StoryState } from "../types";
 import { getOpponent } from "../utils/players";
-import { countSentences, handoffHint } from "../utils/sentences";
+import { countWords } from "../utils/sentences";
 
 export function PlayPage() {
   const { storyId } = useParams<{ storyId: string }>();
@@ -300,8 +301,9 @@ export function PlayPage() {
   const activeIsP2 = story.active_player_number === 2;
   const completedTurns = story.current_turn - 1;
   const progressPct = Math.round((completedTurns / story.total_turns) * 100);
-  const liveCount = countSentences(text);
-  const canSubmit = liveCount === 2 && text.length <= maxLen && !submitting;
+  const minWords = cfg?.min_words ?? 4;
+  const wordCount = countWords(text);
+  const canSubmit = wordCount >= minWords && text.length <= maxLen && !submitting;
 
   const submit = async () => {
     if (!canSubmit) return;
@@ -358,24 +360,25 @@ export function PlayPage() {
           </div>
         )}
 
+        {story.sentences.length > 0 && (
+          <div className="card stack">
+            <strong className="muted">{t("the_story_so_far")}</strong>
+            <div className="story-scroll notebook">
+              <StoryProse sentences={story.sentences} language={story.language} />
+            </div>
+          </div>
+        )}
+
         {myTurn ? (
           <div className="card stack">
             <div>
               <strong>{story.current_turn === 1 ? t("write_to_start") : t("continue_story")}</strong>
               <p className="muted" style={{ margin: "6px 0 0", fontSize: "0.88rem" }}>
-                {t("blind_hint")}
+                {t("min_words_hint", { min: minWords })}
               </p>
             </div>
-            {story.continuation_hint && (
-              <div className="handoff-lead">
-                <span className="handoff-label">{t("continue_from")}</span>
-                <span className="handoff-chip" dir={story.language === "he" ? "rtl" : "ltr"}>
-                  …{story.continuation_hint}
-                </span>
-              </div>
-            )}
             <textarea
-              className="text-input"
+              className="text-input notebook"
               value={text}
               maxLength={maxLen}
               placeholder={t("write_here")}
@@ -383,21 +386,11 @@ export function PlayPage() {
               onChange={(e) => setText(e.target.value)}
               autoFocus
             />
-            {text.trim() && (
-              <div className="handoff-out">
-                <span className="muted">{t("partner_will_see")}</span>
-                <span className="handoff-chip" dir={story.language === "he" ? "rtl" : "ltr"}>
-                  {handoffHint(text) || "…"}
-                </span>
-              </div>
-            )}
             <div className="row-between">
               <span className="muted" style={{ fontSize: "0.85rem" }}>
-                {text.trim() && liveCount !== 2 ? t("two_sentences_rule") : ""}
+                {text.trim() && wordCount < minWords ? t("min_words_rule", { min: minWords }) : ""}
               </span>
-              <span className="char-count">
-                {text.length}/{maxLen}
-              </span>
+              <span className="char-count">{t("words_count", { n: wordCount })}</span>
             </div>
             {submitError && <div className="banner banner-error">{submitError}</div>}
             <button
