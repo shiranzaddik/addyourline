@@ -1,0 +1,29 @@
+# Render Blueprint — one-click deploy of Add Your Line.
+#
+# How to use:
+#   1. Push this file to the repo (already done).
+#   2. On https://dashboard.render.com → New → Blueprint → connect this repo.
+#   3. Render reads this file, builds the Dockerfile, and deploys a web service.
+#
+# The service is a single container: FastAPI serves the built React app, the
+# REST API, and the WebSockets from one origin. Render provides $PORT (honored
+# by the Dockerfile) and RENDER_EXTERNAL_URL (used for invite/share links until
+# you set a custom domain).
+services:
+  - type: web
+    name: addyourline
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free            # free tier: fine for a demo. Note: no persistent disk,
+                          # so the SQLite DB resets on redeploy/restart. For
+                          # durable storage, use a paid plan + Render Postgres
+                          # (set DATABASE_URL) — see README "Deployment".
+    healthCheckPath: /api/health
+    autoDeploy: true      # redeploy automatically on pushes to the default branch
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      # PUBLIC_BASE_URL is intentionally unset here: the app falls back to
+      # Render's own URL automatically. Once addyourline.com is connected, add:
+      #   PUBLIC_BASE_URL = https://addyourline.com
+      #   CORS_ORIGINS    = https://addyourline.com

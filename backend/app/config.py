@@ -1,4 +1,5 @@
 """Application configuration loaded from environment variables."""
+import os
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -48,7 +49,15 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    s = Settings()
+    # On hosts that expose the service URL (e.g. Render sets RENDER_EXTERNAL_URL),
+    # use it for invite/share links when PUBLIC_BASE_URL wasn't set explicitly.
+    # Setting PUBLIC_BASE_URL (e.g. https://addyourline.com) always wins.
+    if os.getenv("PUBLIC_BASE_URL") is None:
+        external = os.getenv("RENDER_EXTERNAL_URL")
+        if external:
+            s.public_base_url = external.rstrip("/")
+    return s
 
 
 settings = get_settings()
