@@ -1,11 +1,26 @@
 # Add Your Line ✍️
 
 A real-time, two-player collaborative story-writing game. Two people take turns
-adding **exactly two sentences** each until the story is complete, then get a
-beautiful, color-coded, shareable result. No accounts, no passwords — just a
-name and a link. Fully bilingual: **English & Hebrew (RTL)**.
+adding **at least four words** each until the story is complete, then get a
+beautiful, color-coded result rendered on a handwritten notebook page — ready to
+share. Both writers see the story grow in real time. No accounts, no passwords —
+just a name and a link. Fully bilingual: **English & Hebrew (RTL)**.
 
 Production: **https://addyourline.com**
+
+---
+
+## 📸 Screenshots
+
+| Home | Writing a turn |
+| :--: | :--: |
+| ![Home screen](docs/screenshots/01-home.jpg) | ![Writing a turn in the notebook](docs/screenshots/02-play.jpg) |
+| **Finished story** | **Hebrew / RTL** |
+| ![Completed, color-coded story](docs/screenshots/03-completed.jpg) | ![Hebrew right-to-left story](docs/screenshots/04-hebrew-rtl.jpg) |
+
+Stories are written on a notebook page in a handwriting font, color-coded by
+author (Player 1 in blue, Player 2 in green), and work identically in English
+(LTR) and Hebrew (RTL). Dark mode is the default, with a light-mode toggle.
 
 ---
 
@@ -17,9 +32,11 @@ Production: **https://addyourline.com**
   can't be skipped, duplicated, or edited.
 - **No auth** — a locally-stored player token lets you refresh/reconnect safely.
 - **English & Hebrew** with full RTL layout and a centralized translation system.
-- **Exactly-two-sentence validation** on both client and server (EN + HE punctuation).
+- **Minimum-word validation** on both client and server (Unicode-aware, works in EN + HE).
+- **Shared, visible story** — both writers watch the story grow in real time.
 - **Shareable completed stories** at a public read-only URL with Open Graph previews.
-- **Mobile-first, animated, polished UI** with blue (Player 1) / green (Player 2) colors.
+- **Notebook UI** — handwriting font on ruled paper, dark mode by default, with
+  blue (Player 1) / green (Player 2) color-coding.
 
 ---
 
@@ -43,7 +60,7 @@ addyourline/
 └── frontend/                React + TypeScript + Vite
     └── src/
         ├── pages/           Home, Play (waiting+game), Completed, Join
-        ├── components/      Shell, StoryProse, ShareButtons, LanguageSelector
+        ├── components/      Shell, StoryProse, ShareButtons, LanguageSelector, ThemeToggle
         ├── hooks/           useGameSocket (resilient WS with reconnect)
         ├── services/        api, storage (localStorage), config
         ├── i18n/            Centralized EN/HE translations + RTL context
@@ -59,8 +76,8 @@ addyourline/
   Unique `(story_id, player_number)`.
 - **sentences** — `id`, `story_id`, `player_id`, `position`, `turn_number`,
   `text`, `created_at`. Unique `(story_id, position)`, indexed.
-  **Each turn = exactly two sentence rows** (a 10-turn game = 20 rows), written
-  atomically in one transaction as the turn advances.
+  **Each turn = one row** (a 10-turn game = 10 rows), written atomically in one
+  transaction as the turn advances.
 
 ### Real-time events
 
@@ -111,7 +128,7 @@ backend, so everything is same-origin. Open it in **two different browsers**
 
 ```bash
 cd backend
-pytest            # 26 tests: sentence validation + full game-flow rules
+pytest            # 29 tests: word-count validation + full game-flow rules
 ```
 
 ### Docker Compose (optional)
@@ -194,11 +211,11 @@ DNS/hosting is **not** preconfigured — do this manually at your registrar:
 ## 🧩 Game rules enforced by the server
 
 - A story has **exactly two** players; a third cannot join.
-- Only the **active** player can submit, and only **two sentences** per turn.
+- Only the **active** player can submit, and each turn must be **at least four words**.
 - Turns can't be skipped; duplicate submissions for a turn are rejected.
 - A **completed** story is immutable and publicly readable.
-- Random matchmaking pairs only compatible settings and never matches you with
-  yourself.
+- Random matchmaking pairs players by **language**; the story length is chosen
+  randomly by the server (capped at 10 turns), not by either player.
 - Names and story text are length-limited and safely rendered (React escaping).
 - Basic per-IP rate limiting guards write endpoints.
 

@@ -7,6 +7,9 @@
   --p2-soft: #e3f7ef;
   --p2-ink: #0a7a56;
 
+  /* Pen icon used (masked) as each player's marker next to their name. */
+  --pen-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'/%3E%3C/svg%3E");
+
   /* Warm, light surfaces to match the logo (cream paper + royal blue + gold) */
   --bg-a: #eef2ff;
   --bg-b: #fef6ec;
@@ -689,9 +692,11 @@ textarea.text-input.notebook:focus {
   color: var(--p2-ink);
 }
 .pill .swatch {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  /* A small pen icon (masked), tinted with each player's color. */
+  -webkit-mask: var(--pen-icon) center / contain no-repeat;
+  mask: var(--pen-icon) center / contain no-repeat;
 }
 .pill-p1 .swatch {
   background: var(--p1);
