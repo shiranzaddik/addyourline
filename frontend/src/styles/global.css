@@ -327,6 +327,12 @@ textarea.text-input {
 .mode-tile.is-friend::before {
   background: linear-gradient(var(--p2), #37c99a);
 }
+.mode-tile.is-bot {
+  grid-column: 1 / -1; /* span the full width beneath the two side-by-side tiles */
+}
+.mode-tile.is-bot::before {
+  background: linear-gradient(#a579ff, #7c5cff);
+}
 .mode-tile:hover:not(:disabled) {
   transform: translateY(-4px);
 }
@@ -337,6 +343,9 @@ textarea.text-input {
 .mode-tile.is-random:hover:not(:disabled) {
   border-color: var(--p1);
   box-shadow: var(--shadow-color-p1);
+}
+.mode-tile.is-bot:hover:not(:disabled) {
+  border-color: #7c5cff;
 }
 .mode-tile .mode-emoji {
   font-size: 1.9rem;

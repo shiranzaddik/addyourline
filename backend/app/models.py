@@ -34,6 +34,7 @@ STATUS_COMPLETED = "completed"
 # Mode values
 MODE_RANDOM = "random"
 MODE_FRIEND = "friend"
+MODE_BOT = "bot"  # play against the computer
 
 
 class Story(Base):

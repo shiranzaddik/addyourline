@@ -12,7 +12,7 @@ class CreateStoryRequest(BaseModel):
     display_name: str = Field(..., min_length=1, max_length=80)
     language: str = Field(..., pattern="^(en|he)$")
     total_turns: int
-    mode: str = Field(..., pattern="^(random|friend)$")
+    mode: str = Field(..., pattern="^(random|friend|bot)$")
 
     @field_validator("display_name")
     @classmethod

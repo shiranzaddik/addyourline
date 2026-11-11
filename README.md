@@ -25,11 +25,23 @@ Stories are written on a notebook page in a handwriting font, color-coded by
 author (Player 1 in blue, Player 2 in green), and work identically in English
 (LTR) and Hebrew (RTL). Dark mode is the default, with a light-mode toggle.
 
+### Playing against the computer 🤖
+
+No second player? Pick a length and write with the built-in computer opponent —
+it replies after every turn, in your line's language. (Your line in blue, the
+computer's in green.)
+
+<p align="center">
+  <img src="docs/screenshots/05-computer.jpg" alt="Playing against the computer — the human line in blue, the computer's reply in green" width="520">
+</p>
+
 ---
 
 ## ✨ Features
 
-- **Two ways to play** — match with a random writer, or invite a friend by link.
+- **Three ways to play** — match with a random writer, invite a friend by link,
+  or play right now against the **computer** (a built-in, offline opponent — no
+  API key or network needed; it writes in both English and Hebrew).
 - **Real-time turns over WebSockets** — both players stay in sync with no refresh.
 - **Server-authoritative game logic** — the backend owns whose turn it is; turns
   can't be skipped, duplicated, or edited.

@@ -259,15 +259,22 @@ export function PlayPage() {
   ) {
     const i1 = story.players.find((p) => p.player_number === 1);
     const i2 = story.players.find((p) => p.player_number === 2);
+    const isBot = story.mode === "bot";
     return (
       <Shell>
         <div className="centered">
           <div className="card stack text-center fade-in">
-            <div style={{ fontSize: "2.6rem" }}>🤝</div>
+            <div style={{ fontSize: "2.6rem" }}>{isBot ? "🤖" : "🤝"}</div>
             <h1 className="hero-title" style={{ fontSize: "2rem" }}>
-              {t("writer_found")}
+              {isBot ? t("computer_ready") : t("writer_found")}
             </h1>
-            {oppName && <p className="hero-sub">{t("matched_with", { name: oppName })}</p>}
+            {oppName && (
+              <p className="hero-sub">
+                {isBot
+                  ? t("matched_with_computer", { name: oppName })
+                  : t("matched_with", { name: oppName })}
+              </p>
+            )}
             <div className="player-pills" style={{ justifyContent: "center" }}>
               {i1 && (
                 <span className="pill pill-p1">
@@ -284,7 +291,7 @@ export function PlayPage() {
                 </span>
               )}
             </div>
-            <p className="muted">{t("matched_hint")}</p>
+            <p className="muted">{isBot ? t("matched_hint_computer") : t("matched_hint")}</p>
             <div className="dots">
               <span />
               <span />
@@ -407,7 +414,11 @@ export function PlayPage() {
           <div className="card">
             <div className="waiting-wrap">
               <div className="pen">✍️</div>
-              <h3 style={{ margin: 0 }}>{t("waiting_for", { name: oppName ?? "…" })}</h3>
+              <h3 style={{ margin: 0 }}>
+                {story.mode === "bot"
+                  ? t("computer_thinking")
+                  : t("waiting_for", { name: oppName ?? "…" })}
+              </h3>
               <div className="dots">
                 <span />
                 <span />

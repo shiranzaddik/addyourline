@@ -173,6 +173,51 @@ async def test_matchmaking_random_length_is_server_chosen(client):
 
 
 @pytest.mark.asyncio
+async def test_bot_story_starts_active_with_two_players(client):
+    resp = await client.post(
+        "/api/stories",
+        json={"display_name": "Alice", "language": "en", "total_turns": 4, "mode": "bot"},
+    )
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["story"]["mode"] == "bot"
+    # No waiting room — the computer is already present and the game is active.
+    assert body["story"]["status"] == "active"
+    assert len(body["story"]["players"]) == 2
+    assert body["player"]["player_number"] == 1  # the human writes first
+    assert body["story"]["active_player_number"] == 1
+
+
+@pytest.mark.asyncio
+async def test_bot_replies_after_each_human_turn(client):
+    resp = await client.post(
+        "/api/stories",
+        json={"display_name": "Alice", "language": "en", "total_turns": 4, "mode": "bot"},
+    )
+    story = resp.json()
+    story_id = story["story"]["id"]
+    token = story["token"]
+
+    # Human turn 1 -> the computer immediately plays turn 2, back to the human.
+    r1 = await _submit(client, story_id, token, "the first human line here")
+    assert r1.status_code == 200, r1.text
+    s1 = r1.json()["story"]
+    assert len(s1["sentences"]) == 2
+    assert s1["sentences"][0]["player_number"] == 1
+    assert s1["sentences"][1]["player_number"] == 2  # the computer
+    assert s1["current_turn"] == 3
+    assert s1["active_player_number"] == 1
+
+    # Human turn 3 -> computer plays final turn 4 -> story completes.
+    r2 = await _submit(client, story_id, token, "the second human line here")
+    assert r2.status_code == 200, r2.text
+    s2 = r2.json()["story"]
+    assert s2["status"] == "completed"
+    assert len(s2["sentences"]) == 4
+    assert [s["player_number"] for s in s2["sentences"]] == [1, 2, 1, 2]
+
+
+@pytest.mark.asyncio
 async def test_matchmaking_requires_same_language(client):
     r1 = await client.post("/api/matchmaking", json={"display_name": "P1", "language": "en"})
     # Different language should NOT match the waiting player.

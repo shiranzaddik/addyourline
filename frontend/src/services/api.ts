@@ -44,6 +44,19 @@ export const api = {
     });
   },
 
+  playVsComputer(displayName: string, language: Language, totalTurns: number) {
+    // Computer mode: starts active immediately (human + bot), no waiting room.
+    return request<JoinResponse>("/stories", {
+      method: "POST",
+      body: JSON.stringify({
+        display_name: displayName,
+        language,
+        total_turns: totalTurns,
+        mode: "bot" as Mode,
+      }),
+    });
+  },
+
   matchRandom(displayName: string, language: Language) {
     // Random mode: the server picks the length, so none is sent.
     return request<JoinResponse>("/matchmaking", {

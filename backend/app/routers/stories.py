@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database import get_db
-from ..models import MODE_FRIEND, STATUS_WAITING
+from ..models import MODE_BOT, MODE_FRIEND, STATUS_WAITING
 from ..ratelimit import rate_limit
 from ..schemas import (
     CancelMatchmakingRequest,
@@ -18,6 +18,7 @@ from ..schemas import (
     UpdateSettingsRequest,
 )
 from ..services import matchmaking
+from ..services.bot_service import create_bot_story, play_pending_bot_turns
 from ..services.story_service import (
     GameError,
     create_friend_story,
@@ -43,6 +44,10 @@ def _player_public(player) -> PlayerPublic:
 async def create_story(req: CreateStoryRequest, db: AsyncSession = Depends(get_db)) -> JoinResponse:
     if req.mode == MODE_FRIEND:
         story, player, token = await create_friend_story(
+            db, req.display_name, req.language, req.total_turns
+        )
+    elif req.mode == MODE_BOT:  # play vs the computer — starts active immediately
+        story, player, token = await create_bot_story(
             db, req.display_name, req.language, req.total_turns
         )
     else:  # random -> matchmaking (length is chosen randomly by the server)
@@ -105,6 +110,17 @@ async def submit_story_turn(
         await events.broadcast_state(story, events.STORY_COMPLETED)
     else:
         await events.broadcast_state(story, events.TURN_CHANGED)
+
+    # In computer mode, let the bot take its turn right away (if it's now its turn).
+    if story.mode == MODE_BOT and story.status != "completed":
+        bot_story = await play_pending_bot_turns(db, story_id)
+        if bot_story is not None:
+            story = bot_story
+            if story.status == "completed":
+                await events.broadcast_state(story, events.STORY_COMPLETED)
+            else:
+                await events.broadcast_state(story, events.TURN_CHANGED)
+
     player = find_player_by_token(story, req.token)
     return StoryStateResponse(
         story=serialize_story(story), you=_player_public(player) if player else None

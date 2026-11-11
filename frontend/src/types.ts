@@ -1,7 +1,7 @@
 // Mirrors the backend Pydantic schemas.
 
 export type Language = "en" | "he";
-export type Mode = "random" | "friend";
+export type Mode = "random" | "friend" | "bot";
 export type Status = "waiting" | "active" | "completed";
 
 export interface PlayerPublic {
