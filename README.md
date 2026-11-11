@@ -6,7 +6,10 @@ beautiful, color-coded result rendered on a handwritten notebook page — ready 
 share. Both writers see the story grow in real time. No accounts, no passwords —
 just a name and a link. Fully bilingual: **English & Hebrew (RTL)**.
 
-Production: **https://addyourline.com**
+**▶️ Live demo: https://addyourline.onrender.com/**
+Deployed on Render's free tier — the first request after the app has been idle
+may take ~30–50s to wake, then it's instant. A custom domain (e.g.
+`addyourline.com`) is optional — see the **Deployment** section below.
 
 ---
 
@@ -140,7 +143,7 @@ docker compose up --build
 
 ---
 
-## 🌐 Deployment (https://addyourline.com)
+## 🌐 Deployment (https://addyourline.onrender.com/)
 
 The simplest robust setup is a **single container**: FastAPI serves the built
 React app, the API, and WebSockets from one origin. This makes WebSockets,
@@ -152,8 +155,8 @@ Graph tags for shared stories.
 ```bash
 docker build -t addyourline .
 docker run -p 8000:8000 \
-  -e PUBLIC_BASE_URL=https://addyourline.com \
-  -e CORS_ORIGINS=https://addyourline.com \
+  -e PUBLIC_BASE_URL=https://addyourline.onrender.com \
+  -e CORS_ORIGINS=https://addyourline.onrender.com \
   -e DATABASE_URL=postgresql+asyncpg://USER:PASS@HOST:5432/addyourline \
   addyourline
 ```
@@ -166,8 +169,8 @@ real deployments. To use Postgres, uncomment `asyncpg` in
 
 | Variable           | Example                                            | Purpose                                   |
 | ------------------ | -------------------------------------------------- | ----------------------------------------- |
-| `PUBLIC_BASE_URL`  | `https://addyourline.com`                          | Builds invite & share links               |
-| `CORS_ORIGINS`     | `https://addyourline.com`                          | Allowed browser origins                   |
+| `PUBLIC_BASE_URL`  | `https://addyourline.onrender.com`                 | Builds invite & share links               |
+| `CORS_ORIGINS`     | `https://addyourline.onrender.com`                 | Allowed browser origins                   |
 | `DATABASE_URL`     | `postgresql+asyncpg://user:pass@host:5432/addyourline` | Database (Postgres in prod)          |
 | `ALLOWED_TURN_COUNTS` | `10,20,30`                                      | Selectable story lengths                  |
 
@@ -176,10 +179,13 @@ real deployments. To use Postgres, uncomment `asyncpg` in
 
 ### Platforms
 
-Any container host works (Render, Railway, Fly.io, Google Cloud Run, a VM with
-Docker). The image honors `$PORT` if the platform sets one. Ensure the platform
-**allows WebSocket (upgrade) connections** — all of the above do. For automatic
-deploys, connect the GitHub repo so pushes to `main` build and deploy the image.
+This app is deployed on **Render** (see [`render.yaml`](render.yaml)) and is live
+at **https://addyourline.onrender.com/** — pushes to `main` build and deploy the
+image automatically.
+
+Any container host works just as well (Render, Railway, Fly.io, Google Cloud Run,
+a VM with Docker). The image honors `$PORT` if the platform sets one. Ensure the
+platform **allows WebSocket (upgrade) connections** — all of the above do.
 
 #### If you split frontend/backend onto different hosts
 Serve the frontend as static files and point a reverse proxy so `/api` and `/ws`
@@ -187,9 +193,11 @@ reach the backend on the same public origin (keeps WS + cookies + OG simple).
 Otherwise introduce `VITE_API_BASE` in `src/services/api.ts` and enable the
 matching `CORS_ORIGINS`.
 
-### DNS for addyourline.com
+### Optional: custom domain
 
-DNS/hosting is **not** preconfigured — do this manually at your registrar:
+The app is already live at **https://addyourline.onrender.com/**. To serve it from
+your own domain (e.g. `addyourline.com`) instead, configure DNS manually at your
+registrar:
 
 1. Deploy the app to your host and note its target (an IP, or a hostname such as
    `your-app.onrender.com`).
